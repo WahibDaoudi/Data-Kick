@@ -30,6 +30,49 @@ body {
   line-height: 1.6;
 }
 
+/* Ligue 1: navy with the French flag colors */
+:root[data-league='l1'] {
+  --bg: #06122e;
+  --panel: #0b2257;
+  --panel-hi: #123178;
+  --ink: #ffffff;
+  --muted: #8fa3d1;
+  --stage: #c9d6f2;
+  --p1: #3d8bff;
+  --p2: #ef4135;
+  --draw: #ffffff;
+  --ok: #ffd400;
+}
+
+/* Premier League: bright blue and hot pink */
+:root[data-league='pl'] {
+  --bg: #0a2a6e;
+  --panel: #0d47a1;
+  --panel-hi: #123f99;
+  --ink: #ffffff;
+  --muted: #9fd3ff;
+  --stage: #d6ecff;
+  --p1: #4fc3f7;
+  --p2: #ff3d9a;
+  --draw: #ffffff;
+  --ok: #ff79c6;
+}
+
+/* Champions League night: navy, silver and electric blue */
+:root[data-league='ucl'] {
+  --bg: #050a24;
+  --panel: #0d1b4c;
+  --panel-hi: #1b2f73;
+  --ink: #f2f4ff;
+  --muted: #8c95c9;
+  --stage: #b9c2e6;
+  --grass: #0c4a24;
+  --p1: #3fd0ff;
+  --p2: #9b7bff;
+  --draw: #e6ebff;
+  --ok: #7df9ff;
+}
+
 /* CRT: full window, scanlines + vignette + light flicker */
 .crt {
   position: relative;
@@ -66,7 +109,37 @@ body {
   50% { opacity: 1; }
 }
 
-.cabinet { flex: 1; display: flex; min-height: 0; }
+.cabinet { position: relative; flex: 1; display: flex; min-height: 0; }
+
+/* Stadium band at the bottom of the list and VS screens */
+.backdrop {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: min(14vh, 9.4vw);
+  object-fit: cover;
+  object-position: center top;
+  image-rendering: pixelated;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+/* Star field behind the Champions League screens: two layers twinkling in turn */
+.stars { display: none; position: absolute; inset: 0; pointer-events: none; }
+:root[data-league='ucl'] .stars { display: block; }
+
+.stars i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  animation: twinkle 2.4s infinite steps(1);
+}
+
+.stars i:last-child { animation-delay: -1.2s; }
+@keyframes twinkle { 50% { opacity: 0.25; } }
 
 /* Screens */
 .screen {
@@ -85,7 +158,7 @@ body {
 
 h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
 
-.hint { color: var(--muted); font-size: 10px; }
+.hint { color: var(--muted); font-size: 10px; text-shadow: 2px 2px 0 var(--edge); }
 
 /* Music and sound toggles */
 .audio-toggles {
@@ -166,6 +239,32 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
 
 .goal.show { visibility: visible; animation: blink 0.3s infinite steps(1); }
 
+/* Competition selector */
+.title-bottom { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+.league-select {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+  background: var(--edge);
+  border: var(--border) solid var(--draw);
+  padding: 6px;
+}
+
+.league-name { min-width: 24ch; color: var(--draw); }
+
+.arrow {
+  font: inherit;
+  color: var(--edge);
+  background: var(--draw);
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.arrow:hover, .arrow:focus-visible { background: var(--ink); outline: none; }
+
 /* Bottom ticker with the week's picks */
 .ticker {
   position: relative;
@@ -186,6 +285,25 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
 }
 
 @keyframes scroll { to { transform: translateX(-100%); } }
+
+/* Banner per competition: tricolor edge for Ligue 1, silver edge on the night sky for the Champions League */
+:root[data-league='l1'] .ticker {
+  background: #0b2257;
+  color: #ffffff;
+  border-image: linear-gradient(90deg, #0055a4 0 33.3%, #f4f4f4 33.3% 66.6%, #ef4135 66.6%) 1;
+}
+
+:root[data-league='pl'] .ticker {
+  background: linear-gradient(90deg, #1565c0, #2196f3);
+  color: #ffffff;
+  border-image: linear-gradient(90deg, #4fc3f7, #ffffff 50%, #ff3d9a) 1;
+}
+
+:root[data-league='ucl'] .ticker {
+  background: #050a24;
+  color: #cfe0ff;
+  border-image: linear-gradient(90deg, #5a6aa8, #e6ebff 50%, #5a6aa8) 1;
+}
 
 /* Sprites */
 .stage {
@@ -221,6 +339,21 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
 .blink { animation: blink 1s infinite steps(1); }
 @keyframes blink { 50% { opacity: 0; } }
 
+/* Fixtures list: animated stands behind, dimmed so the list stays readable */
+#list { position: relative; overflow: hidden; }
+#list > :not(.stadium) { position: relative; z-index: 1; }
+#list h2, #list .hint { text-shadow: 2px 2px 0 var(--edge), -1px -1px 0 var(--edge); }
+
+.stadium {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  filter: brightness(0.5);
+}
+
 /* Fixtures list */
 .fixtures {
   list-style: none;
@@ -252,7 +385,6 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
 
 .fixture canvas { width: calc(24px * var(--mini)); height: calc(36px * var(--mini)); image-rendering: pixelated; }
 .fixture .team { font-size: clamp(10px, 1.1vw, 16px); }
-.fixture .team small { display: block; margin-top: 6px; font-size: 0.7em; color: var(--ink); }
 .fixture .home { text-align: left; color: var(--p1); }
 .fixture .away { text-align: right; color: var(--p2); }
 
@@ -267,13 +399,67 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
 .bar .a { background: var(--p2); }
 
 .pcts { display: flex; justify-content: space-between; }
+.mid .badge { padding: 3px 6px; }
+.fixture.played .when { color: var(--ink); }
+
+.list-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+
+/* Model accuracy: one big block gauge, then the played matches with a badge each */
+.accuracy { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 10px; }
+.acc-head { display: flex; justify-content: space-between; font-size: clamp(12px, 1.4vw, 20px); }
+#acc-pct { color: var(--ok); }
+.acc-blocks { height: clamp(24px, 4.5vh, 48px); }
+.acc-blocks i.on { background: var(--ok); }
+.acc-detail { color: var(--muted); font-size: clamp(8px, 0.8vw, 11px); }
+
+.past {
+  list-style: none;
+  width: 100%;
+  max-width: 1100px;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+  scrollbar-width: none;
+}
+
+.past li {
+  display: grid;
+  grid-template-columns: 9em 1fr 6em 1fr 11em 18em;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: var(--border) solid var(--edge);
+  font-size: clamp(8px, 0.85vw, 12px);
+}
+
+.past .date { color: var(--muted); white-space: nowrap; }
+.past .home { text-align: right; color: var(--p1); }
+.past .away { color: var(--p2); }
+.past .score { text-align: center; color: var(--ink); white-space: nowrap; }
+.past .pick { color: var(--muted); }
+.past .pick small { display: block; margin-top: 4px; }
+
+/* Fixed colors: a green / red verdict must read the same in every theme */
+.badge { padding: 6px 8px; text-align: center; color: #000000; border: 2px solid #000000; font-size: 0.8em; white-space: nowrap; }
+.badge.ok { background: #00e436; }
+.badge.ko { background: #ff004d; color: #ffffff; }
+
+@media (max-width: 700px) {
+  .past li { grid-template-columns: 1fr 5em 1fr; gap: 6px; }
+  .past .date, .past .pick { grid-column: 1 / -1; text-align: center; }
+  .past .badge { grid-column: 1 / -1; }
+}
 
 /* Versus */
 .kickoff { color: var(--draw); font-size: 10px; }
 .vs-row { display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%; }
 .fighter { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .fname { font-size: clamp(11px, 1.2vw, 18px); }
-.star { font-size: clamp(9px, 0.9vw, 14px); color: var(--ink); min-height: 1.6em; }
 .left .fname { color: var(--p1); }
 .right .fname { color: var(--p2); }
 .mood { font-size: 9px; color: var(--muted); min-height: 1.6em; }
@@ -325,11 +511,6 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
   .fixture { grid-template-columns: calc(24px * var(--mini)) 1fr 96px 1fr calc(24px * var(--mini)); gap: 6px; padding: 4px; }
   .fixture .team { font-size: 7px; }
   .mid { font-size: 6px; }
-}
-
-/* Portrait: show the whole pitch rather than cropping it */
-@media (max-aspect-ratio: 6/5) {
-  .pitch { object-fit: contain; }
 }
 
 @media (prefers-reduced-motion: reduce) {

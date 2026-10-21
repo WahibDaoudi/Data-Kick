@@ -20,7 +20,28 @@ const Logo = (() => {
     '#ffa300', '#ffa300', '#ffa300', '#ffa300', '#ff6c24', '#ff6c24', '#ff6c24'];
   const COOL = ['#fff1e8', '#fff1e8', '#8fd3ff', '#8fd3ff', '#29adff', '#29adff', '#29adff',
     '#29adff', '#1d64d8', '#1d64d8', '#1d64d8', '#1d2b9e', '#1d2b9e', '#1d2b9e'];
-  const SHADOW = '#7e2553';
+  // Champions League night: silver DATA, electric blue KICK
+  const SILVER = ['#ffffff', '#ffffff', '#eef1ff', '#eef1ff', '#d6dcf5', '#d6dcf5', '#d6dcf5',
+    '#b4bde6', '#b4bde6', '#b4bde6', '#b4bde6', '#8f9bd0', '#8f9bd0', '#8f9bd0'];
+  const NIGHT_BLUE = ['#ffffff', '#ffffff', '#9fd8ff', '#9fd8ff', '#4fa8ff', '#4fa8ff', '#4fa8ff',
+    '#4fa8ff', '#2f6bff', '#2f6bff', '#2f6bff', '#1a3fb8', '#1a3fb8', '#1a3fb8'];
+  // Ligue 1: the French flag, blue DATA, white ball, red KICK
+  const FR_BLUE = ['#ffffff', '#ffffff', '#7fb2ff', '#7fb2ff', '#3d8bff', '#3d8bff', '#3d8bff',
+    '#0055a4', '#0055a4', '#0055a4', '#0055a4', '#003a75', '#003a75', '#003a75'];
+  const FR_RED = ['#ffffff', '#ffffff', '#ff9a92', '#ff9a92', '#ff5a4e', '#ff5a4e', '#ff5a4e',
+    '#ef4135', '#ef4135', '#ef4135', '#ef4135', '#b3261c', '#b3261c', '#b3261c'];
+  // Premier League: sky blue DATA, hot pink KICK
+  const PL_BLUE = ['#ffffff', '#ffffff', '#b3e5fc', '#b3e5fc', '#4fc3f7', '#4fc3f7', '#4fc3f7',
+    '#29b6f6', '#29b6f6', '#1e88e5', '#1e88e5', '#1565c0', '#1565c0', '#1565c0'];
+  const PL_PINK = ['#ffffff', '#ffffff', '#ffc1e0', '#ffc1e0', '#ff79c6', '#ff79c6', '#ff79c6',
+    '#ff3d9a', '#ff3d9a', '#ff3d9a', '#ff3d9a', '#c2185b', '#c2185b', '#c2185b'];
+  const THEMES = {
+    neutral: { first: WARM, second: COOL, shadow: '#7e2553', ballDark: '#43454c' },
+    l1: { first: FR_BLUE, second: FR_RED, shadow: '#0b2257', ballDark: '#0055a4' },
+    pl: { first: PL_BLUE, second: PL_PINK, shadow: '#0a2a6e', ballDark: '#ff3d9a' },
+    ucl: { first: SILVER, second: NIGHT_BLUE, shadow: '#0a1a5c', ballDark: '#1d2b9e' },
+  };
+  let theme = THEMES.neutral;
   const OUTLINE = '#000000';
 
   const BALL = [
@@ -28,15 +49,13 @@ const Logo = (() => {
     'KWDWWDDWWDWK', 'KDDWWWWWWDDK', 'KDWWWWWWWWDK', 'KWWDWWWWDWWK',
     '.KWDDWWDDWK.', '.KWWDDDDWWK.', '..KKWWWWKK..', '....KKKK....',
   ];
-  const BALL_COLORS = { K: OUTLINE, W: '#fff1e8', D: '#43454c' };
-
-  // Layout: [char, x, palette]; the ball sits between the two words
+  // Layout: [char, x, word]; the ball sits between the two words
   const letters = [];
   let x = 4;
-  for (const ch of 'DATA') { letters.push([ch, x, WARM]); x += GLYPHS[ch][0].length * 2 + 2; }
+  for (const ch of 'DATA') { letters.push([ch, x, 'first']); x += GLYPHS[ch][0].length * 2 + 2; }
   const ballX = x + 2;
   x = ballX + 12 + 4;
-  for (const ch of 'KICK') { letters.push([ch, x, COOL]); x += GLYPHS[ch][0].length * 2 + 2; }
+  for (const ch of 'KICK') { letters.push([ch, x, 'second']); x += GLYPHS[ch][0].length * 2 + 2; }
 
   let canvas, ctx, raf = null;
 
@@ -55,11 +74,11 @@ const Logo = (() => {
   function draw(now) {
     ctx.clearRect(0, 0, LW, LH);
     const t = now / 1000;
-    const placed = letters.map(([ch, lx, pal], i) => [masks[ch], lx, TOP + Math.round(Math.sin(t * 4 - i * 0.7) * 2), pal]);
+    const placed = letters.map(([ch, lx, word], i) => [masks[ch], lx, TOP + Math.round(Math.sin(t * 4 - i * 0.7) * 2), theme[word]]);
 
     // Three passes so outlines never cover a neighbour letter: shadow, outline, fill
     for (const [m, lx, ly] of placed) {
-      ctx.fillStyle = SHADOW;
+      ctx.fillStyle = theme.shadow;
       for (const [px, py] of m) ctx.fillRect(lx + px + 1, ly + py + 1, 3, 3);
     }
     for (const [m, lx, ly] of placed) {
@@ -79,7 +98,7 @@ const Logo = (() => {
     BALL.forEach((row, r) => {
       [...row].forEach((cell, c) => {
         if (cell === '.') return;
-        ctx.fillStyle = BALL_COLORS[cell];
+        ctx.fillStyle = { K: OUTLINE, W: '#fff1e8', D: theme.ballDark }[cell];
         ctx.fillRect(ballX + (spin ? 11 - c : c), by + r, 1, 1);
       });
     });
@@ -99,6 +118,10 @@ const Logo = (() => {
       canvas.height = LH;
       ctx = canvas.getContext('2d');
       draw(0);
+    },
+    setTheme(name) {
+      theme = THEMES[name];
+      draw(performance.now());
     },
     start() {
       if (raf || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

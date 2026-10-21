@@ -1,16 +1,33 @@
-// Title screen: pixel football pitch, two players passing then shooting.
+// Title screen: stadium band (sky, skyline, stands) above a pixel pitch, two players passing then shooting.
 
 const Pitch = (() => {
-  const PW = 200;
-  const PH = 125;
-  const GRASS = ['#1f8a3b', '#26a047'];
-  const LINE = '#fff1e8';
-  const NET = '#c2c3c7';
+  // The pitch and its stands live in a 200 x 125 "core". The canvas takes the window proportions:
+  // wide windows get more stands and grass on the sides, tall ones (phones) more sky above and grass below.
+  // The core is drawn OX px from the left and OY px from the top, so nothing is cropped or stretched.
+  const CW = 200;
+  const CH = 125;
+  let W = CW;
+  let H = CH;
+  let OX = 0;
+  let OY = 0;
+  const TOP = Scenery.HEIGHT; // the pitch starts below the stands
+  const CY = 76; // halfway line height
 
-  // Players: sprite top-left and the foot where the ball sits
+  // Day pitch (neutral, Ligue 1, Premier League), floodlit night pitch with a ring of stars (Champions League)
+  const THEMES = {
+    neutral: { line: '#fff1e8', net: '#c2c3c7', ball: { W: '#fff1e8', B: '#1d1d1d' }, night: false },
+    l1: { line: '#fff1e8', net: '#c2c3c7', ball: { W: '#fff1e8', B: '#0055a4' }, night: false },
+    pl: { line: '#ffffff', net: '#c2c3c7', ball: { W: '#ffffff', B: '#ff3d9a' }, night: false },
+    ucl: { line: '#d8e4ff', net: '#8f9bd0', ball: { W: '#e8ecff', B: '#1d2b9e' }, night: true },
+  };
+  let themeName = 'neutral';
+  let theme = THEMES.neutral;
+  let rivals = [];
+
+  // Players in core coordinates: sprite top-left and the foot where the ball sits
   const players = [
-    { team: null, x: 48, y: 46, flip: false, foot: [66, 79], goal: [197, 63] },
-    { team: null, x: 128, y: 46, flip: true, foot: [134, 79], goal: [2, 63] },
+    { team: null, x: 48, y: 58, flip: false, foot: [66, 91], goal: [197, CY] },
+    { team: null, x: 128, y: 58, flip: true, foot: [134, 91], goal: [2, CY] },
   ];
 
   // Ball 4x4, two frames for the spin
@@ -25,38 +42,53 @@ const Pitch = (() => {
 
   function buildBackground() {
     const c = document.createElement('canvas');
-    c.width = PW;
-    c.height = PH;
+    c.width = W;
+    c.height = H;
     const g = c.getContext('2d');
 
-    // Mowing stripes
-    for (let x = 0; x < PW; x += 10) {
-      g.fillStyle = GRASS[(x / 10) % 2];
-      g.fillRect(x, 0, 10, PH);
+    // Sky, stands and grass over the whole canvas, stripes lined up with the pitch
+    Scenery.paint(g, themeName, W, H, OY, OX);
+
+    // Everything else in core coordinates
+    g.translate(OX, OY);
+
+    // Floodlights: stepped pools of light from the four corners of the pitch
+    if (theme.night) {
+      const corners = [[0, TOP], [CW, TOP], [0, CH], [CW, CH]];
+      for (let y = TOP; y < CH; y++) {
+        for (let x = 0; x < CW; x++) {
+          const d = Math.min(...corners.map(([cx, cy]) => Math.hypot(x - cx, (y - cy) * 1.4)));
+          const level = d < 30 ? 3 : d < 48 ? 2 : d < 66 ? 1 : 0;
+          if (level) {
+            g.fillStyle = `rgba(255, 255, 230, ${level * 0.05})`;
+            g.fillRect(x, y, 1, 1);
+          }
+        }
+      }
     }
 
-    g.fillStyle = LINE;
+    g.fillStyle = theme.line;
     const rect = (x, y, w, h) => {
       g.fillRect(x, y, w, 1);
       g.fillRect(x, y + h - 1, w, 1);
       g.fillRect(x, y, 1, h);
       g.fillRect(x + w - 1, y, 1, h);
     };
-    rect(4, 4, 192, 117);
-    g.fillRect(100, 4, 1, 117);
-    rect(4, 32, 27, 61);
-    rect(4, 48, 10, 29);
-    rect(169, 32, 27, 61);
-    rect(186, 48, 10, 29);
-    g.fillRect(100, 62, 1, 1);
-    g.fillRect(22, 62, 1, 1);
-    g.fillRect(178, 62, 1, 1);
+    rect(4, TOP + 2, 192, 89);
+    g.fillRect(100, TOP + 2, 1, 89);
+    rect(4, CY - 25, 24, 50);
+    rect(4, CY - 12, 9, 24);
+    rect(172, CY - 25, 24, 50);
+    rect(187, CY - 12, 9, 24);
+    g.fillRect(100, CY, 1, 1);
+    g.fillRect(20, CY, 1, 1);
+    g.fillRect(180, CY, 1, 1);
 
     // Center circle, midpoint algorithm for crisp pixels
-    let x = 16, y = 0, err = 1 - x;
+    let x = 14, y = 0, err = 1 - x;
     while (x >= y) {
       for (const [dx, dy] of [[x, y], [y, x], [-y, x], [-x, y], [-x, -y], [-y, -x], [y, -x], [x, -y]]) {
-        g.fillRect(100 + dx, 62 + dy, 1, 1);
+        g.fillRect(100 + dx, CY + dy, 1, 1);
       }
       y++;
       if (err < 0) err += 2 * y + 1;
@@ -65,9 +97,9 @@ const Pitch = (() => {
 
     // Goals: checkered nets behind each goal line
     for (const gx of [0, 196]) {
-      for (let yy = 55; yy < 71; yy++) {
+      for (let yy = CY - 7; yy < CY + 8; yy++) {
         for (let xx = gx; xx < gx + 4; xx++) {
-          if ((xx + yy) % 2 === 0) { g.fillStyle = NET; g.fillRect(xx, yy, 1, 1); }
+          if ((xx + yy) % 2 === 0) { g.fillStyle = theme.net; g.fillRect(xx, yy, 1, 1); }
         }
       }
     }
@@ -89,9 +121,19 @@ const Pitch = (() => {
       for (let c = 0; c < 4; c++) {
         const ch = art[r][c];
         if (ch === '.') continue;
-        ctx.fillStyle = ch === 'W' ? '#fff1e8' : '#1d1d1d';
+        ctx.fillStyle = theme.ball[ch];
         ctx.fillRect(Math.round(x) - 2 + c, Math.round(y) - 3 + r, 1, 1);
       }
+    }
+  }
+
+  // Ring of 8 stars around the center circle, twinkling one after the other
+  function drawStars(now) {
+    for (let k = 0; k < 8; k++) {
+      const x = Math.round(100 + Math.cos((k * Math.PI) / 4) * 21);
+      const y = Math.round(CY + Math.sin((k * Math.PI) / 4) * 21);
+      ctx.fillStyle = (Math.floor(now / 250) + k) % 8 < 2 ? '#ffffff' : '#9fb3ff';
+      for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) ctx.fillRect(x + dx, y + dy, 1, 1);
     }
   }
 
@@ -99,9 +141,10 @@ const Pitch = (() => {
     moods[i] = { mood, until };
   }
 
-  // Opponent: a random star in his club's kit, changed after every goal
+  // Opponent: a player of a club of the competition, in its kit, changed after every goal
   function rollRival() {
-    const club = pick(Object.keys(STARS));
+    const pool = rivals.filter((c) => CLUB_LOOKS[c]);
+    const club = pick(pool.length ? pool : Object.keys(CLUB_LOOKS));
     players[1].team = { name: club, kit: KITS[club], look: pickPlayer(club).look };
   }
 
@@ -122,7 +165,7 @@ const Pitch = (() => {
       if (passes < 3) {
         phase = { kind: 'pass', t0: now, dur: 800, from: players[holder].foot, to: players[other].foot, arc: 10 };
       } else {
-        phase = { kind: 'shot', t0: now, dur: 650, from: players[holder].foot, to: players[holder].goal, arc: 34 };
+        phase = { kind: 'shot', t0: now, dur: 650, from: players[holder].foot, to: players[holder].goal, arc: 30 };
       }
       if (Sound.ready) Sound.play('kick');
     } else if (phase.kind === 'pass') {
@@ -160,6 +203,12 @@ const Pitch = (() => {
     step(now);
     ctx.drawImage(bg, 0, 0);
 
+    ctx.save();
+    ctx.translate(0, OY);
+    Scenery.animate(ctx, themeName, now, W);
+    ctx.translate(OX, 0);
+    if (theme.night) drawStars(now);
+
     players.forEach((p, i) => {
       const mood = now < moods[i].until ? moods[i].mood : 'neutral';
       // Running on the spot: 1px bob, players out of phase
@@ -173,6 +222,7 @@ const Pitch = (() => {
       ctx.fillRect(Math.round(ball.x) - 2, Math.round(ball.ground) + 1, 4, 1);
     }
     drawBall(ball.x, ball.y, ball.air ? Math.floor(now / 90) % 2 : 0);
+    ctx.restore();
 
     raf = requestAnimationFrame(frame);
   }
@@ -181,12 +231,33 @@ const Pitch = (() => {
     init(el, goal, team) {
       canvas = el;
       goalEl = goal;
-      canvas.width = PW;
-      canvas.height = PH;
+      canvas.width = W;
+      canvas.height = H;
       ctx = canvas.getContext('2d');
       bg = buildBackground();
       players[0].team = team;
       reset(performance.now());
+    },
+    // Match the window proportions: wider -> more width, taller -> more height (45% sky above, the rest grass below)
+    resize(aspect) {
+      const w = Math.max(CW, Math.round(CH * aspect));
+      const h = Math.max(CH, Math.round(CW / aspect));
+      if ((w === W && h === H) || !ctx) return;
+      W = w;
+      H = h;
+      OX = Math.floor((W - CW) / 2);
+      OY = Math.round((H - CH) * 0.45);
+      canvas.width = W;
+      canvas.height = H;
+      bg = buildBackground();
+    },
+    // Switch the scenery, day / night pitch and the pool of opponents
+    setTheme(name, clubs) {
+      themeName = name;
+      theme = THEMES[name];
+      rivals = clubs;
+      bg = buildBackground();
+      rollRival();
     },
     start() {
       if (raf) return;

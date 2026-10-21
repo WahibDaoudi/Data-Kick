@@ -7,10 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <!-- ?v=N: bump it when CSS / JS change, browsers then reload every file together -->
+  <link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body>
   <div class="crt">
+    <div class="stars" aria-hidden="true"><i></i><i></i></div>
+    <canvas id="backdrop" class="backdrop" width="320" height="30" aria-hidden="true"></canvas>
     <div class="audio-toggles">
       <button id="music" class="mute" aria-label="Musique">MUSIQUE ON</button>
       <button id="mute" class="mute" aria-label="Bruitages">SON ON</button>
@@ -24,19 +27,45 @@
         <div class="title-ui">
           <div>
             <h1 class="logo"><canvas id="logo" role="img" aria-label="Data-Kick"></canvas></h1>
-            <p class="subtitle">PRONOS LIGUE 1</p>
+            <p class="subtitle">PRONOS FOOT</p>
           </div>
-          <button id="start" class="btn" disabled>CHARGEMENT...</button>
+          <div class="title-bottom">
+            <div class="league-select">
+              <button id="league-prev" class="arrow" aria-label="Competition precedente">&lt;</button>
+              <span id="league-name" class="league-name">LIGUE 1</span>
+              <button id="league-next" class="arrow" aria-label="Competition suivante">&gt;</button>
+            </div>
+            <button id="start" class="btn" disabled>CHARGEMENT...</button>
+          </div>
         </div>
         <div class="ticker"><span id="ticker"></span></div>
       </section>
 
       <!-- Upcoming matches -->
       <section id="list" class="screen">
+        <canvas id="stadium" class="stadium" aria-hidden="true"></canvas>
         <h2>MATCHS DE LA SEMAINE</h2>
         <p id="round" class="hint"></p>
         <ul id="fixtures" class="fixtures" role="listbox" aria-label="Matchs a venir"></ul>
-        <p class="hint">&#9650;&#9660; CHOISIR &nbsp; ENTER VOIR &nbsp; ESC TITRE</p>
+        <p class="hint">HAUT/BAS CHOISIR &nbsp; ENTER VOIR &nbsp; ESC TITRE</p>
+        <div class="list-actions">
+          <button id="show-results" class="btn small">PRECISION DU MODELE</button>
+          <button id="change" class="btn small">CHANGER DE COMPETITION</button>
+        </div>
+      </section>
+
+      <!-- Model accuracy on the matches already played -->
+      <section id="results" class="screen">
+        <h2>PRECISION DU MODELE</h2>
+        <p id="results-league" class="hint"></p>
+        <div class="accuracy">
+          <div class="acc-head"><span>BONS PRONOS</span><span id="acc-pct">0%</span></div>
+          <div id="acc-blocks" class="blocks acc-blocks"></div>
+          <p id="acc-detail" class="acc-detail"></p>
+        </div>
+        <ul id="past" class="past" aria-label="Matchs joues"></ul>
+        <p class="hint">PRONOS FAITS AVANT CHAQUE MATCH DE LA SAISON &nbsp; ESC RETOUR</p>
+        <button id="results-back" class="btn small">RETOUR</button>
       </section>
 
       <!-- Versus + probabilities -->
@@ -46,14 +75,12 @@
           <div class="fighter left">
             <div class="stage"><canvas class="sprite"></canvas></div>
             <p class="fname"></p>
-            <p class="star"></p>
             <p class="mood"></p>
           </div>
           <div class="vs">VS</div>
           <div class="fighter right">
             <div class="stage"><canvas class="sprite"></canvas></div>
             <p class="fname"></p>
-            <p class="star"></p>
             <p class="mood"></p>
           </div>
         </div>
@@ -73,12 +100,15 @@
     </main>
   </div>
 
-  <script src="js/sound.js"></script>
-  <script src="js/sprite.js"></script>
-  <script src="js/teams.js"></script>
-  <script src="js/players.js"></script>
-  <script src="js/pitch.js"></script>
-  <script src="js/logo.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/sound.js?v=14"></script>
+  <script src="js/sprite.js?v=14"></script>
+  <script src="js/teams.js?v=14"></script>
+  <script src="js/players.js?v=14"></script>
+  <script src="js/leagues.js?v=14"></script>
+  <script src="js/scenery.js?v=14"></script>
+  <script src="js/pitch.js?v=14"></script>
+  <script src="js/stadium.js?v=14"></script>
+  <script src="js/logo.js?v=14"></script>
+  <script src="js/app.js?v=14"></script>
 </body>
 </html>

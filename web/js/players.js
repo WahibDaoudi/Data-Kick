@@ -1,38 +1,78 @@
-// Star players drawn for each club. Edit freely: rosters change every transfer window.
+// Player looks drawn for each club (no names). Edit freely.
 // skin: index in SKINS (0 darkest -> 6 lightest), hair: key of HAIR, hairColor: key of HAIR_COLORS.
 
-const STARS = {
+const CLUB_LOOKS = {
   'Paris SG': [
-    { name: 'DEMBELE', skin: 1, hair: 'short', hairColor: 'black' },
-    { name: 'DOUE', skin: 1, hair: 'short', hairColor: 'black' },
-    { name: 'HAKIMI', skin: 3, hair: 'buzz', hairColor: 'black', beard: true },
-    { name: 'VITINHA', skin: 4, hair: 'short', hairColor: 'darkbrown', beard: true },
-    { name: 'KVARA', skin: 5, hair: 'long', hairColor: 'darkbrown' },
+    { skin: 1, hair: 'short', hairColor: 'black' },
+    { skin: 1, hair: 'short', hairColor: 'black' },
+    { skin: 3, hair: 'buzz', hairColor: 'black', beard: true },
+    { skin: 4, hair: 'short', hairColor: 'darkbrown', beard: true },
+    { skin: 5, hair: 'long', hairColor: 'darkbrown' },
   ],
   'Marseille': [
-    { name: 'GREENWOOD', skin: 2, hair: 'short', hairColor: 'black', beard: true },
-    { name: 'HOJBJERG', skin: 6, hair: 'buzz', hairColor: 'brown', beard: true },
+    { skin: 2, hair: 'short', hairColor: 'black', beard: true },
+    { skin: 6, hair: 'buzz', hairColor: 'brown', beard: true },
   ],
   'Monaco': [
-    { name: 'GOLOVIN', skin: 6, hair: 'short', hairColor: 'brown' },
-    { name: 'MINAMINO', skin: 5, hair: 'short', hairColor: 'black' },
+    { skin: 6, hair: 'short', hairColor: 'brown' },
+    { skin: 5, hair: 'short', hairColor: 'black' },
   ],
   'Lyon': [
-    { name: 'TOLISSO', skin: 2, hair: 'buzz', hairColor: 'black', beard: true },
-    { name: 'MIKAUTADZE', skin: 5, hair: 'short', hairColor: 'black' },
+    { skin: 2, hair: 'buzz', hairColor: 'black', beard: true },
+    { skin: 5, hair: 'short', hairColor: 'black' },
   ],
   'Lille': [
-    { name: 'GIROUD', skin: 6, hair: 'short', hairColor: 'brown', beard: true },
-    { name: 'HARALDSSON', skin: 6, hair: 'short', hairColor: 'blond' },
+    { skin: 6, hair: 'short', hairColor: 'brown', beard: true },
+    { skin: 6, hair: 'short', hairColor: 'blond' },
   ],
-  'Lens': [{ name: 'THAUVIN', skin: 5, hair: 'short', hairColor: 'darkbrown', beard: true }],
-  'Nice': [{ name: 'MOFFI', skin: 0, hair: 'short', hairColor: 'black' }],
+  'Lens': [{ skin: 5, hair: 'short', hairColor: 'darkbrown', beard: true }],
+  'Nice': [{ skin: 0, hair: 'short', hairColor: 'black' }],
   'Rennes': [
-    { name: 'KALIMUENDO', skin: 1, hair: 'short', hairColor: 'black' },
-    { name: 'LEPAUL', skin: 5, hair: 'buzz', hairColor: 'brown' },
+    { skin: 1, hair: 'short', hairColor: 'black' },
+    { skin: 5, hair: 'buzz', hairColor: 'brown' },
   ],
-  'Strasbourg': [{ name: 'PANICHELLI', skin: 5, hair: 'long', hairColor: 'darkbrown' }],
-  'Brest': [{ name: 'AJORQUE', skin: 6, hair: 'short', hairColor: 'brown', beard: true }],
+  'Strasbourg': [{ skin: 5, hair: 'long', hairColor: 'darkbrown' }],
+  'Brest': [{ skin: 6, hair: 'short', hairColor: 'brown', beard: true }],
+
+  // Champions League clubs
+  'Real Madrid': [
+    { skin: 1, hair: 'short', hairColor: 'black' },
+    { skin: 2, hair: 'short', hairColor: 'black' },
+    { skin: 3, hair: 'buzz', hairColor: 'black' },
+  ],
+  'Man City': [
+    { skin: 6, hair: 'long', hairColor: 'blond' },
+    { skin: 6, hair: 'short', hairColor: 'brown' },
+  ],
+  'Liverpool': [
+    { skin: 6, hair: 'short', hairColor: 'brown' },
+  ],
+  'Arsenal': [
+    { skin: 1, hair: 'short', hairColor: 'black' },
+    { skin: 6, hair: 'short', hairColor: 'brown' },
+    { skin: 6, hair: 'short', hairColor: 'brown' },
+  ],
+  'Barcelona': [
+    { skin: 3, hair: 'short', hairColor: 'black' },
+    { skin: 3, hair: 'short', hairColor: 'black', beard: true },
+    { skin: 5, hair: 'short', hairColor: 'black' },
+  ],
+  'Bayern Munich': [
+    { skin: 6, hair: 'short', hairColor: 'brown' },
+    { skin: 2, hair: 'short', hairColor: 'black' },
+  ],
+  'Inter': [{ skin: 5, hair: 'short', hairColor: 'darkbrown', beard: true }],
+  'Ath Madrid': [{ skin: 5, hair: 'short', hairColor: 'darkbrown' }],
+  'Dortmund': [{ skin: 1, hair: 'buzz', hairColor: 'black', beard: true }],
+  'Napoli': [
+    { skin: 6, hair: 'short', hairColor: 'ginger' },
+    { skin: 0, hair: 'buzz', hairColor: 'black', beard: true },
+  ],
+  'Galatasaray': [{ skin: 0, hair: 'short', hairColor: 'platinum' }],
+  'Sp Lisbon': [{ skin: 4, hair: 'short', hairColor: 'black' }],
+  'Aston Villa': [{ skin: 2, hair: 'buzz', hairColor: 'black', beard: true }],
+  'Man United': [{ skin: 5, hair: 'short', hairColor: 'darkbrown' }],
+  'Roma': [{ skin: 5, hair: 'short', hairColor: 'darkbrown', beard: true }],
 };
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
@@ -46,10 +86,8 @@ function randomLook() {
   };
 }
 
-// A random star of the club, or a random look when the club has none
+// A random look of the club, or a fully random one when the club has none
 function pickPlayer(teamName) {
-  const stars = STARS[teamName];
-  if (!stars) return { star: null, look: randomLook() };
-  const { name, ...look } = pick(stars);
-  return { star: name, look };
+  const looks = CLUB_LOOKS[teamName];
+  return { look: looks ? { ...pick(looks) } : randomLook() };
 }
