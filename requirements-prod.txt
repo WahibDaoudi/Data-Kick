@@ -1,0 +1,9 @@
+# Server only (no Jupyter): same versions as requirements.txt
+joblib==1.6.0
+numpy==2.5.4
+pandas==3.0.6
+psycopg2-binary==2.9.13
+python-dotenv==1.2.4
+scikit-learn==1.9.1
+scipy==1.18.1
+threadpoolctl==3.7.0
