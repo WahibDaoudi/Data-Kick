@@ -1,0 +1,8 @@
+# Caddy: HTTPS certificate (Let's Encrypt) obtained and renewed automatically
+# Replace ton-domaine.fr by your domain, then:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy
+
+ton-domaine.fr, www.ton-domaine.fr {
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+}
