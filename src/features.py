@@ -174,24 +174,39 @@ def get_training_data():
 
 def get_fixture_features(home_name, away_name, date=None):
     #Features of an upcoming match, built from the current state of the database
+    result = get_fixtures_features([(home_name, away_name, date)])[0]
+    if isinstance(result, str):
+        raise ValueError(result)
+    return result
+
+
+def get_fixtures_features(fixtures):
+    #Same for several (home_name, away_name, date) matches with a single database load
+    #Each item is a one-row DataFrame, or an error message
     df = load_matches()
     _, state = build_features(df)
-
     team_ids = load_team_ids()
-    for name in (home_name, away_name):
-        if name not in team_ids:
-            raise ValueError(f"Unknown team: {name}")
 
-    #Latest season of the database, today by default
+    #Latest season of the database
     s_id = df["season_id"].iloc[-1]
-    m_date = pd.Timestamp(date) if date else pd.Timestamp.today().normalize()
 
-    feats = make_row(state, team_ids[home_name], team_ids[away_name], s_id, m_date)
-    if feats is None:
-        raise ValueError("Not enough past matches for one of the two teams")
+    results = []
+    for home_name, away_name, date in fixtures:
+        unknown = [n for n in (home_name, away_name) if n not in team_ids]
+        if unknown:
+            results.append(f"Unknown team: {unknown[0]}")
+            continue
 
-    #One row, columns in the training order
-    return pd.DataFrame([feats], columns=FEATURES)
+        #Today by default
+        m_date = pd.Timestamp(date) if date else pd.Timestamp.today().normalize()
+        feats = make_row(state, team_ids[home_name], team_ids[away_name], s_id, m_date)
+        if feats is None:
+            results.append("Not enough past matches for one of the two teams")
+            continue
+
+        #One row, columns in the training order
+        results.append(pd.DataFrame([feats], columns=FEATURES))
+    return results
 
 
 if __name__ == "__main__":
