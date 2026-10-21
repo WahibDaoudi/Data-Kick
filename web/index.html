@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data-Kick</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="crt">
+    <div class="audio-toggles">
+      <button id="music" class="mute" aria-label="Musique">MUSIQUE ON</button>
+      <button id="mute" class="mute" aria-label="Bruitages">SON ON</button>
+    </div>
+    <main class="cabinet">
+
+      <!-- Title: animated pitch -->
+      <section id="title" class="screen active">
+        <canvas id="pitch" class="pitch"></canvas>
+        <p id="goal" class="goal">GOAL!</p>
+        <div class="title-ui">
+          <div>
+            <h1 class="logo"><canvas id="logo" role="img" aria-label="Data-Kick"></canvas></h1>
+            <p class="subtitle">PRONOS LIGUE 1</p>
+          </div>
+          <button id="start" class="btn" disabled>CHARGEMENT...</button>
+        </div>
+        <div class="ticker"><span id="ticker"></span></div>
+      </section>
+
+      <!-- Upcoming matches -->
+      <section id="list" class="screen">
+        <h2>MATCHS DE LA SEMAINE</h2>
+        <p id="round" class="hint"></p>
+        <ul id="fixtures" class="fixtures" role="listbox" aria-label="Matchs a venir"></ul>
+        <p class="hint">&#9650;&#9660; CHOISIR &nbsp; ENTER VOIR &nbsp; ESC TITRE</p>
+      </section>
+
+      <!-- Versus + probabilities -->
+      <section id="versus" class="screen">
+        <p id="kickoff" class="kickoff"></p>
+        <div class="vs-row">
+          <div class="fighter left">
+            <div class="stage"><canvas class="sprite"></canvas></div>
+            <p class="fname"></p>
+            <p class="star"></p>
+            <p class="mood"></p>
+          </div>
+          <div class="vs">VS</div>
+          <div class="fighter right">
+            <div class="stage"><canvas class="sprite"></canvas></div>
+            <p class="fname"></p>
+            <p class="star"></p>
+            <p class="mood"></p>
+          </div>
+        </div>
+        <div class="gauges">
+          <div class="gauge" data-key="H"><span class="glabel">DOM</span><div class="blocks"></div><span class="pct">0%</span></div>
+          <div class="gauge" data-key="D"><span class="glabel">NUL</span><div class="blocks"></div><span class="pct">0%</span></div>
+          <div class="gauge" data-key="A"><span class="glabel">EXT</span><div class="blocks"></div><span class="pct">0%</span></div>
+        </div>
+        <p id="verdict" class="verdict"></p>
+        <div class="vs-nav">
+          <button id="prev" class="btn small" aria-label="Match precedent">&lt;</button>
+          <button id="back" class="btn">RETOUR</button>
+          <button id="next" class="btn small" aria-label="Match suivant">&gt;</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/sound.js"></script>
+  <script src="js/sprite.js"></script>
+  <script src="js/teams.js"></script>
+  <script src="js/players.js"></script>
+  <script src="js/pitch.js"></script>
+  <script src="js/logo.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
