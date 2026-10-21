@@ -13,7 +13,7 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "model.joblib"
 
 
 def main():
-    #Load the feature matrix and target matrix , DATE ASC
+    #Load the feature matrix and target matrix of every competition , DATE ASC
     df = get_training_data().sort_values(["match_date", "match_id"])
     X = df[FEATURES]
     y = df["target"]
@@ -22,7 +22,7 @@ def main():
     cut = int(len(df) * 0.8)
     X_train, X_test = X.iloc[:cut], X.iloc[cut:]
     y_train, y_test = y.iloc[:cut], y.iloc[cut:]
-    print(X_train.shape, X_test.shape)
+    print(X_train.shape, X_test.shape, "test from", df["match_date"].iloc[cut].date())
 
     #Baseline to know if our features are relevant
     dummy = DummyClassifier(strategy="prior")
@@ -53,6 +53,17 @@ def main():
     #Log loss: quality of the probabilities (lower is better)
     print("Baseline log loss:", log_loss(y_test, base_proba, labels=dummy.classes_))
     print("Model log loss:", log_loss(y_test, model_proba, labels=model.classes_))
+
+    #Same metrics per competition, each against its own baseline (class frequencies of its training matches)
+    comp_train, comp_test = df["competition"].iloc[:cut], df["competition"].iloc[cut:]
+    for comp in ["F1", "UCL"]:
+        tr, te = (comp_train == comp).values, (comp_test == comp).values
+        comp_dummy = DummyClassifier(strategy="prior").fit(X_train[tr], y_train[tr])
+        print(f"{comp} ({te.sum()} test matches)")
+        print("  Baseline accuracy:", accuracy_score(y_test[te], comp_dummy.predict(X_test[te])),
+              "log loss:", log_loss(y_test[te], comp_dummy.predict_proba(X_test[te]), labels=comp_dummy.classes_))
+        print("  Model accuracy:", accuracy_score(y_test[te], model_pred[te]),
+              "log loss:", log_loss(y_test[te], model_proba[te], labels=model.classes_))
 
     #Weights
     coefs = pd.DataFrame(model.coef_, index=model.classes_, columns=FEATURES).T

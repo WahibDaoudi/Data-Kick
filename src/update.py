@@ -1,20 +1,14 @@
-import io
+import json
 import os
-from datetime import date
-from pathlib import Path
-from urllib.request import urlopen
 
 import pandas as pd
 import psycopg2
-from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(ROOT / ".env")
+from competitions import CUPS, LEAGUES, UCL_ALIASES, season_code, season_start
+from download import RAW_DIR, download_cups, download_leagues
+from ingest import insert_matches
 
-RAW_DIR = ROOT / "data" / "raw" / "ligue-1"
-URL = "https://www.football-data.co.uk/mmz4281/{code}/F1.csv"
-
-#Raw columns -> DB columns (same mapping as the EDA notebook)
+#Raw columns -> DB columns (same mapping as the notebooks)
 COLUMNS = {
     "Date": "match_date", "HomeTeam": "home_team", "AwayTeam": "away_team",
     "FTHG": "home_goals", "FTAG": "away_goals", "FTR": "result",
@@ -24,73 +18,61 @@ COLUMNS = {
     "HY": "home_yellow_cards", "AY": "away_yellow_cards",
     "HR": "home_red_cards", "AR": "away_red_cards",
 }
-STATS = list(COLUMNS.values())[3:]
-STATS.remove("result")
 
 
-def season_code(day=None):
-    #2026-10-20 -> "2627" (a season starts in July)
-    day = day or date.today()
-    start = day.year if day.month >= 7 else day.year - 1
-    return f"{start % 100:02d}{(start + 1) % 100:02d}"
+def league_season(div, code):
+    #One raw football-data season, cleaned like in notebooks/multi_league.ipynb
+    path = RAW_DIR / LEAGUES[div]["folder"] / f"season-{code}.csv"
+    df = pd.read_csv(path, encoding="utf-8-sig", usecols=list(COLUMNS)).dropna(subset=["HomeTeam", "FTR"])
+    df = df.rename(columns=COLUMNS)
+    df["match_date"] = pd.to_datetime(df["match_date"], format="%d/%m/%Y")
+    df["home_team"] = df["home_team"].str.strip()
+    df["away_team"] = df["away_team"].str.strip()
+    df["competition"] = div
+    df["season"] = code
+    return df
 
 
-def download_season(code):
-    #Results of the season so far, saved next to the other raw files
-    with urlopen(URL.format(code=code), timeout=20) as res:
-        df = pd.read_csv(io.BytesIO(res.read()), encoding="utf-8-sig")
-    df = df.dropna(subset=list(COLUMNS))[list(COLUMNS)]
-    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True).dt.strftime("%Y-%m-%d")
-    df["HomeTeam"] = df["HomeTeam"].str.strip()
-    df["AwayTeam"] = df["AwayTeam"].str.strip()
-
-    RAW_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(RAW_DIR / f"season-{code}.csv", index=False)
-    return df.rename(columns=COLUMNS)
-
-
-def insert_new_matches(df, code):
-    #Insert only the matches that are not in the database yet
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
-    cur = conn.cursor()
-
-    cur.execute("INSERT INTO seasons (code) VALUES (%s) ON CONFLICT (code) DO NOTHING;", (code,))
-    cur.execute("SELECT id FROM seasons WHERE code = %s;", (code,))
-    s_id = cur.fetchone()[0]
-
-    for team in set(df["home_team"]) | set(df["away_team"]):
-        cur.execute("INSERT INTO teams (name) VALUES (%s) ON CONFLICT (name) DO NOTHING;", (team,))
-    cur.execute("SELECT name, id FROM teams;")
-    team_ids = dict(cur.fetchall())
-
-    cur.execute("SELECT match_date, home_team_id, away_team_id FROM matches WHERE season_id = %s;", (s_id,))
-    known = {(str(d), h, a) for d, h, a in cur.fetchall()}
-
-    added = 0
-    for _, r in df.iterrows():
-        h, a = team_ids[r["home_team"]], team_ids[r["away_team"]]
-        if (r["match_date"], h, a) in known:
+def cup_season(cup, code):
+    #One raw fixturedownload season: played matches only, names mapped to football-data names
+    path = RAW_DIR / CUPS[cup]["folder"] / f"season-{code}.json"
+    rows = []
+    for m in json.loads(path.read_text()):
+        if m["HomeTeamScore"] is None:
             continue
-        cur.execute(
-            f"""
-            INSERT INTO matches (
-                season_id, match_date, home_team_id, away_team_id, result, {", ".join(STATS)}
-            ) VALUES (%s, %s, %s, %s, %s, {", ".join(["%s"] * len(STATS))});
-            """,
-            (s_id, r["match_date"], h, a, r["result"], *[int(r[c]) for c in STATS]),
-        )
-        added += 1
-
-    conn.commit()
-    cur.close()
-    conn.close()
-    return added
+        hg, ag = m["HomeTeamScore"], m["AwayTeamScore"]
+        rows.append({
+            "competition": cup,
+            "season": code,
+            "match_date": pd.to_datetime(m["DateUtc"]).tz_localize(None).normalize(),
+            "round": m["RoundNumber"],
+            #The current season is not finished: its final is not played yet
+            "neutral": False,
+            "home_team": UCL_ALIASES.get(m["HomeTeam"], m["HomeTeam"]),
+            "away_team": UCL_ALIASES.get(m["AwayTeam"], m["AwayTeam"]),
+            "home_goals": hg,
+            "away_goals": ag,
+            "result": "H" if hg > ag else "A" if hg < ag else "D",
+        })
+    return pd.DataFrame(rows)
 
 
 def update():
-    code = season_code()
-    df = download_season(code)
-    added = insert_new_matches(df, code)
+    #Download the current season of every competition, then insert the new matches
+    start = season_start()
+    code = season_code(start)
+    download_leagues([start])
+    download_cups([start])
+
+    frames = [league_season(div, code) for div in LEAGUES] + [cup_season(cup, code) for cup in CUPS]
+    df = pd.concat([f for f in frames if not f.empty], ignore_index=True)
+
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    cur = conn.cursor()
+    added = insert_matches(cur, df)
+    conn.commit()
+    cur.close()
+    conn.close()
     print(f"Season {code}: {len(df)} matches played, {added} new in the database")
     return added
 
