@@ -20,9 +20,10 @@ MODEL_PATH = ROOT / "models" / "model.joblib"
 PORT = int(os.getenv("PORT", 8000))
 #127.0.0.1: only this machine (local use, or behind Caddy in production)
 HOST = os.getenv("HOST", "127.0.0.1")
-CACHE_SECONDS = 30 * 60
-#New results, then new predictions, every 3 hours while the server runs
-REFRESH_SECONDS = 3 * 60 * 60
+#Scores and predictions of the week recomputed every 10 minutes (in the background, visitors never wait)
+CACHE_SECONDS = 10 * 60
+#New results in the database (features of the next matches) every 3 hours
+UPDATE_SECONDS = 3 * 60 * 60
 
 #Loaded once at startup
 model = joblib.load(MODEL_PATH)
@@ -51,7 +52,7 @@ def week_predictions(competition):
     to_come = [m for m in matches if m["kickoff"] > now]
 
     #Started or played: the prediction stored before kick-off (never recomputed: the model could see the result),
-    #and the verdict once the score is known
+    #and the verdict once the score is known (live predictions only, like the accuracy screen)
     stored = stored_predictions(competition, started)
     for m in started:
         saved = stored.get((m["kickoff"][:10], m["home"], m["away"]))
@@ -59,7 +60,7 @@ def week_predictions(competition):
         m["source"] = saved["source"] if saved else None
         m["error"] = None if saved else "No prediction made before kick-off"
         m["correct"] = None
-        if saved and m["score"]:
+        if saved and m["score"] and saved["source"] == "live":
             hg, ag = m["score"]
             m["correct"] = saved["predicted"] == ("H" if hg > ag else "A" if hg < ag else "D")
 
@@ -78,13 +79,53 @@ def week_predictions(competition):
     return matches
 
 
-def refresh():
-    #New results in the database, upcoming matches recomputed (and their live predictions stored)
-    #Any error is printed and skipped: the next refresh retries, the loop never dies
+def results_with_fresh(competition):
+    #Season results from the database, plus the matches whose final score is already in the fixtures feed
+    #but not yet in the database (league results reach the database 1 to 2 days after the match)
+    data = season_results(competition)
+    known = {(m["date"], m["home"], m["away"]) for m in data["matches"]}
     try:
-        update()
-    except Exception as e:
-        print(f"Update skipped: {e!r}")
+        fixtures = week_predictions(competition)
+    except OSError:
+        fixtures = []
+
+    fresh = []
+    for f in fixtures:
+        key = (f["kickoff"][:10], f["home"], f["away"])
+        #Same rule as the database results: a live prediction made before kick-off, and a final score
+        if not f["score"] or f["correct"] is None or f.get("source") != "live" or key in known:
+            continue
+        hg, ag = f["score"]
+        fresh.append({
+            "date": key[0], "round": f["round"], "home": f["home"], "away": f["away"],
+            "score": f["score"], "result": "H" if hg > ag else "A" if hg < ag else "D",
+            "probs": f["probs"], "predicted": max(f["probs"], key=f["probs"].get),
+            "correct": f["correct"], "source": "live",
+        })
+    if not fresh:
+        return data
+
+    matches = sorted(fresh + data["matches"], key=lambda m: m["date"], reverse=True)
+    played = len(matches)
+    data["matches"] = matches
+    data["summary"].update(
+        played=played,
+        correct=sum(m["correct"] for m in matches),
+        accuracy=round(sum(m["correct"] for m in matches) / played, 4),
+        home_baseline=round(sum(m["result"] == "H" for m in matches) / played, 4),
+        pending=max(data["summary"]["pending"] - len(fresh), 0),
+    )
+    return data
+
+
+def refresh(with_update):
+    #Every competition recomputed (fresh scores, live predictions stored); new results in the database first if asked
+    #Any error is printed and skipped: the next refresh retries, the loop never dies
+    if with_update:
+        try:
+            update()
+        except Exception as e:
+            print(f"Update skipped: {e!r}")
     cache.clear()
     for competition in PREDICTED:
         try:
@@ -111,7 +152,7 @@ class Handler(SimpleHTTPRequestHandler):
             competition = parse_qs(url.query).get("competition", ["F1"])[0]
             if competition not in PREDICTED:
                 return self.send_json(400, {"error": f"Unknown competition: {competition}"})
-            return self.send_json(200, {"competition": competition, **season_results(competition)})
+            return self.send_json(200, {"competition": competition, **results_with_fresh(competition)})
         if url.path == "/api/predict":
             query = parse_qs(url.query)
             home = query.get("home", [""])[0]
@@ -146,17 +187,17 @@ if __name__ == "__main__":
     except OSError as e:
         print(f"Update skipped (offline?): {e}")
 
-    #In the background: every competition predicted (switching is instant, live predictions stored),
-    #then the same again every REFRESH_SECONDS so the next round uses the latest results
+    #In the background: every competition predicted now (switching is instant, live predictions stored),
+    #then again every CACHE_SECONDS for fresh scores, with new database results every UPDATE_SECONDS
     def background():
-        for competition in PREDICTED:
-            try:
-                week_predictions(competition)
-            except Exception as e:
-                print(f"{competition} predictions skipped: {e!r}")
+        refresh(with_update=False)
+        last_update = time.time()
         while True:
-            time.sleep(REFRESH_SECONDS)
-            refresh()
+            time.sleep(CACHE_SECONDS - 30)
+            due = time.time() - last_update >= UPDATE_SECONDS
+            refresh(with_update=due)
+            if due:
+                last_update = time.time()
     threading.Thread(target=background, daemon=True).start()
 
     server = ThreadingHTTPServer((HOST, PORT), Handler)

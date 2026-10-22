@@ -11,7 +11,8 @@ const DAYS = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
 
 const state = {
   league: -1, // index in LEAGUES, -1 = no competition chosen yet
-  loaded: {}, // fixtures already fetched, by competition code
+  loaded: {}, // fixtures already fetched, by competition code: { at, fixtures }
+  looks: {}, // player drawn for each fixture, kept when the list is refreshed
   fixtures: [],
   index: 0,
   timers: [],
@@ -77,7 +78,9 @@ function buildList() {
 
   state.fixtures.forEach((f, i) => {
     // A random player per side, kept for the VS screen
-    f.players = { home: pickPlayer(f.home), away: pickPlayer(f.away) };
+    const key = `${f.kickoff}|${f.home}|${f.away}`;
+    state.looks[key] = state.looks[key] || { home: pickPlayer(f.home), away: pickPlayer(f.away) };
+    f.players = state.looks[key];
 
     const li = document.createElement('li');
     li.className = 'fixture';
@@ -370,34 +373,63 @@ function drawBackdrop(theme) {
 }
 
 // Fixtures of a competition, fetched once per page; PRESS START waits for them
+// Finished matches on top (latest first), then the ones in progress and to come, by kick-off
+function orderFixtures(fixtures) {
+  const done = fixtures.filter((f) => f.score).sort((a, b) => b.kickoff.localeCompare(a.kickoff));
+  return [...done, ...fixtures.filter((f) => !f.score)];
+}
+
+const RELOAD_MS = 5 * 60 * 1000;
+
 function loadLeague(code) {
   const startBtn = $('#start');
   const ready = (fixtures) => {
     // The selector may have moved on while loading
     if (current().code !== code) return;
-    state.fixtures = fixtures;
-    // Cursor on the next match to come, not on the ones already played
-    const next = fixtures.findIndex((f) => f.probs && new Date(f.kickoff) > new Date());
-    state.index = next >= 0 ? next : Math.max(fixtures.findIndex((f) => f.probs), 0);
+    state.fixtures = orderFixtures(fixtures);
+    state.index = 0;
     buildList();
     fillTicker();
     startBtn.textContent = 'PRESS START';
     startBtn.classList.add('blink');
     startBtn.disabled = false;
   };
-  if (state.loaded[code]) return ready(state.loaded[code]);
+  // Fetched less than 5 minutes ago: no need to ask the server again
+  const cached = state.loaded[code];
+  if (cached && Date.now() - cached.at < RELOAD_MS) return ready(cached.fixtures);
 
   startBtn.textContent = 'CHARGEMENT...';
   startBtn.classList.remove('blink');
   startBtn.disabled = true;
   loadFixtures(code)
     .then((fixtures) => {
-      state.loaded[code] = fixtures;
+      state.loaded[code] = { at: Date.now(), fixtures };
       ready(fixtures);
     })
     .catch(() => {
       if (current().code === code) startBtn.textContent = 'RELANCE LE SERVEUR';
     });
+}
+
+// Fresh scores and verdicts every 5 minutes while the page is open: same players, cursor kept on its match
+function reloadFixtures() {
+  const code = current().code;
+  if (!code || document.hidden) return;
+  loadFixtures(code)
+    .then((fixtures) => {
+      state.loaded[code] = { at: Date.now(), fixtures };
+      if (current().code !== code) return;
+      const selected = state.fixtures[state.index];
+      const scroll = $('#fixtures').scrollTop;
+      state.fixtures = orderFixtures(fixtures);
+      const i = selected ? state.fixtures.findIndex((f) => f.kickoff === selected.kickoff && f.home === selected.home) : -1;
+      state.index = Math.max(i, 0);
+      buildList();
+      fillTicker();
+      renderCursor(false);
+      $('#fixtures').scrollTop = scroll;
+    })
+    .catch(() => { /* server busy or offline: next try in 5 minutes */ });
 }
 
 // Star field of the Champions League screens: random pixels as box-shadows, one list per layer
@@ -503,3 +535,4 @@ makeStars();
 
 // Neutral until a competition is chosen
 setLeague(-1);
+setInterval(reloadFixtures, RELOAD_MS);
