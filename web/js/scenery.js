@@ -1,5 +1,5 @@
 // Stadium band drawn above the pitch (title) and at the bottom of the other screens:
-// sky, skyline and stands, one look per theme (neutral, l1, pl, ucl).
+// sky, skyline and stands, one look per theme (neutral, l1, pl, es, it, ucl).
 
 const Scenery = (() => {
   const HEIGHT = 30;
@@ -8,12 +8,16 @@ const Scenery = (() => {
     neutral: ['#29366f', '#33437f', '#3d5090', '#4a5fa3'],
     l1: ['#3a6fd8', '#4f82e0', '#6b9ae8', '#8fb4f0'],
     pl: ['#1e78d8', '#2f8fe0', '#45a4ee', '#5cb6f5'],
+    es: ['#f28c28', '#f7a440', '#fbbd5c', '#ffd27f'],
+    it: ['#3a8fd8', '#58a6e6', '#7cbdf0', '#a6d4f7'],
     ucl: ['#03071c', '#050a24', '#08113a', '#0c1850'],
   };
   const CROWD = {
     neutral: ['#5f574f', '#83769c', '#c2c3c7', '#ab5236', '#1d2b53'],
     l1: ['#0055a4', '#f4f4f4', '#ef4135', '#0b2257', '#c2c3c7'],
     pl: ['#1e88e5', '#ff3d9a', '#ffffff', '#0d47a1', '#7fd8ff'],
+    es: ['#c60b1e', '#ffc400', '#f4f4f4', '#7a1010', '#e8a200'],
+    it: ['#009246', '#f4f4f4', '#ce2b37', '#1b4d2b', '#8a1c24'],
     ucl: ['#0d1b4c', '#1b2f73', '#2a3c70', '#5a6aa8', '#0a1030'],
   };
   // Mowing stripes: day grass, floodlit night grass
@@ -21,6 +25,8 @@ const Scenery = (() => {
     neutral: ['#1f8a3b', '#26a047'],
     l1: ['#1f8a3b', '#26a047'],
     pl: ['#2a8f3e', '#33a148'],
+    es: ['#2a8f3e', '#33a148'],
+    it: ['#1f8a3b', '#26a047'],
     ucl: ['#0c4a24', '#10592c'],
   };
   // Advertising boards along the pitch
@@ -28,6 +34,8 @@ const Scenery = (() => {
     neutral: ['#000000', '#ffec27'],
     l1: ['#0055a4', '#f4f4f4', '#ef4135'],
     pl: ['#1565c0', '#ff3d9a'],
+    es: ['#c60b1e', '#ffc400'],
+    it: ['#009246', '#f4f4f4', '#ce2b37'],
     ucl: ['#050a24', '#b9c2e6'],
   };
 
@@ -61,6 +69,30 @@ const Scenery = (() => {
   // Union Jack, 5 x 3
   const UNION_JACK = ['BWRWB', 'RRRRR', 'BWRWB'];
   const UNION_JACK_COLORS = { B: '#012169', W: '#ffffff', R: '#c8102e' };
+
+  // Sagrada Familia, 15 x 16: four spires over the nave
+  const SAGRADA = [
+    '...X.....X.....', '...X..X..X..X..', '..XXX.X.XXX.X..', '..XXX.X.XXX.X..',
+    '..XXXXX.XXXXX..', '..XXXXXXXXXXX..', '..XX.XXXXX.XX..', '..XXXXXXXXXXX..',
+    '.XXXX.XXX.XXXX.', '.XXXXXXXXXXXXX.', '.XXX.XXXXX.XXX.', '.XXXXXXXXXXXXX.',
+    'XXXXXX...XXXXXX', 'XXXXXX...XXXXXX', 'XXXXXXXXXXXXXXX', 'XXXXXXXXXXXXXXX',
+  ];
+
+  // Colosseum, 22 x 9: the broken side on the right, three rows of arches
+  const COLOSSEUM = [
+    '..XXXXXXXXXXXXX.......', '.XXXXXXXXXXXXXXXXX....', '.XX.XX.XX.XX.XX.XX.XX.',
+    '.XXXXXXXXXXXXXXXXXXXX.', '.XX.XX.XX.XX.XX.XX.XX.', '.XXXXXXXXXXXXXXXXXXXX.',
+    '.XX.XX.XX.XX.XX.XX.XX.', 'XXXXXXXXXXXXXXXXXXXXXX', 'XXXXXXXXXXXXXXXXXXXXXX',
+  ];
+
+  // Leaning tower of Pisa, 16 rows: columns and floors, leaning one pixel every 5 rows
+  const PISA = Array.from({ length: 16 }, (_, r) => '.'.repeat(3 - Math.floor(r / 5)) + (r % 3 === 0 ? 'XXXXX' : 'X.X.X'));
+
+  // Flags waving above the crowd: colors of each stripe, vertical (Italy) or horizontal (Spain)
+  const FLAGS = {
+    es: { stripes: ['#c60b1e', '#ffc400', '#c60b1e'], vertical: false },
+    it: { stripes: ['#009246', '#f4f4f4', '#ce2b37'], vertical: true },
+  };
 
   // Same pseudo-random sequence on every draw: the crowd does not reshuffle
   function rng(seed) {
@@ -115,6 +147,40 @@ const Scenery = (() => {
       }
       bitmap(g, TOWER, 8, 0, '#1a2550');
       bitmap(g, ROOSTER, w - 24, 3, ROOSTER_COLORS);
+    }
+
+    if (theme === 'es') {
+      // The sun, terracotta rooftops and the Sagrada Familia
+      for (let y = -6; y <= 6; y++) {
+        for (let x = -6; x <= 6; x++) {
+          const d = Math.hypot(x, y);
+          if (d <= 6) {
+            g.fillStyle = d <= 4 ? '#fff3b0' : '#ffe27a';
+            g.fillRect(w - 28 + x, 7 + y, 1, 1);
+          }
+        }
+      }
+      g.fillStyle = '#b5532c';
+      for (let x = 0; x < w; ) {
+        const width = 6 + Math.floor(rand() * 8);
+        const top = 12 + Math.floor(rand() * 3);
+        g.fillRect(x, top, width - 1, 18 - top);
+        x += width;
+      }
+      bitmap(g, SAGRADA, 8, 2, '#7a3b1e');
+    }
+
+    if (theme === 'it') {
+      // Colosseum on the left, the leaning tower of Pisa on the right
+      g.fillStyle = '#c98f5a';
+      for (let x = 0; x < w; ) {
+        const width = 6 + Math.floor(rand() * 8);
+        const top = 13 + Math.floor(rand() * 3);
+        g.fillRect(x, top, width - 1, 18 - top);
+        x += width;
+      }
+      bitmap(g, COLOSSEUM, 6, 9, '#c9a46a');
+      bitmap(g, PISA, w - 22, 1, '#efe6d2');
     }
 
     if (theme === 'pl') {
@@ -198,6 +264,20 @@ const Scenery = (() => {
           });
         });
       }
+    } else if (FLAGS[theme]) {
+      // Spanish or Italian flags waving above the crowd
+      const { stripes, vertical } = FLAGS[theme];
+      const wave = Math.floor(now / 250) % 2;
+      for (const fx of [40, 75, 125, 160]) {
+        g.fillStyle = '#c2c3c7';
+        g.fillRect(fx, 14, 1, 6);
+        for (let c = 0; c < 3; c++) {
+          for (let r = 0; r < 3; r++) {
+            g.fillStyle = stripes[vertical ? c : r];
+            g.fillRect(fx + 1 + c, 14 + r + (c === 1 ? wave : 0), 1, 1);
+          }
+        }
+      }
     } else if (theme === 'l1') {
       // Tricolor flags waving above the crowd
       const wave = Math.floor(now / 250) % 2;
@@ -230,9 +310,9 @@ const Scenery = (() => {
         g.fillStyle = rand() < 0.3 ? '#ffffff' : rand() < 0.5 ? '#9fb3ff' : '#5a6aa8';
         g.fillRect(Math.floor(rand() * w), Math.floor(rand() * h), 1, 1);
       }
-    } else if (theme === 'l1' || theme === 'pl') {
-      // Clouds: white over Paris, pale blue over London
-      g.fillStyle = theme === 'l1' ? '#eef4ff' : '#d8eeff';
+    } else if (theme === 'l1' || theme === 'pl' || theme === 'it') {
+      // Clouds: white over Paris and Rome, pale blue over London
+      g.fillStyle = theme === 'pl' ? '#d8eeff' : '#eef4ff';
       for (let i = 0; i < (w * h) / 900; i++) {
         const x = Math.floor(rand() * w);
         const y = 2 + Math.floor(rand() * Math.max(h - 4, 1));

@@ -35,10 +35,22 @@ const Logo = (() => {
     '#29b6f6', '#29b6f6', '#1e88e5', '#1e88e5', '#1565c0', '#1565c0', '#1565c0'];
   const PL_PINK = ['#ffffff', '#ffffff', '#ffc1e0', '#ffc1e0', '#ff79c6', '#ff79c6', '#ff79c6',
     '#ff3d9a', '#ff3d9a', '#ff3d9a', '#ff3d9a', '#c2185b', '#c2185b', '#c2185b'];
+  // La Liga: red DATA, gold KICK
+  const ES_RED = ['#ffffff', '#ffffff', '#ff8a8a', '#ff8a8a', '#e8323f', '#e8323f', '#e8323f',
+    '#c60b1e', '#c60b1e', '#c60b1e', '#c60b1e', '#8a0714', '#8a0714', '#8a0714'];
+  const ES_GOLD = ['#ffffff', '#ffffff', '#fff1a8', '#fff1a8', '#ffd84d', '#ffd84d', '#ffd84d',
+    '#ffc400', '#ffc400', '#ffc400', '#ffc400', '#d99a00', '#d99a00', '#d99a00'];
+  // Serie A: green DATA, white ball, red KICK
+  const IT_GREEN = ['#ffffff', '#ffffff', '#8fe0b0', '#8fe0b0', '#2fbf6c', '#2fbf6c', '#2fbf6c',
+    '#009246', '#009246', '#009246', '#009246', '#00602e', '#00602e', '#00602e'];
+  const IT_RED = ['#ffffff', '#ffffff', '#ff9aa1', '#ff9aa1', '#e8505b', '#e8505b', '#e8505b',
+    '#ce2b37', '#ce2b37', '#ce2b37', '#ce2b37', '#8f1820', '#8f1820', '#8f1820'];
   const THEMES = {
     neutral: { first: WARM, second: COOL, shadow: '#7e2553', ballDark: '#43454c' },
     l1: { first: FR_BLUE, second: FR_RED, shadow: '#0b2257', ballDark: '#0055a4' },
     pl: { first: PL_BLUE, second: PL_PINK, shadow: '#0a2a6e', ballDark: '#ff3d9a' },
+    es: { first: ES_RED, second: ES_GOLD, shadow: '#5a0710', ballDark: '#c60b1e' },
+    it: { first: IT_GREEN, second: IT_RED, shadow: '#0b3d1f', ballDark: '#009246' },
     ucl: { first: SILVER, second: NIGHT_BLUE, shadow: '#0a1a5c', ballDark: '#1d2b9e' },
   };
   let theme = THEMES.neutral;

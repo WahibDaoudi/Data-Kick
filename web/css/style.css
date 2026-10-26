@@ -58,6 +58,34 @@ body {
   --ok: #ff79c6;
 }
 
+/* La Liga: deep red and gold */
+:root[data-league='es'] {
+  --bg: #2a0508;
+  --panel: #7a0f18;
+  --panel-hi: #9e1520;
+  --ink: #ffffff;
+  --muted: #f3c27a;
+  --stage: #fbe3c0;
+  --p1: #ffd23f;
+  --p2: #ff8a3d;
+  --draw: #ffffff;
+  --ok: #ffd23f;
+}
+
+/* Serie A: deep green, white and red */
+:root[data-league='it'] {
+  --bg: #06210f;
+  --panel: #0b4d26;
+  --panel-hi: #126b36;
+  --ink: #ffffff;
+  --muted: #9fd8b4;
+  --stage: #dff2e6;
+  --p1: #3ddc84;
+  --p2: #ff5a64;
+  --draw: #ffffff;
+  --ok: #3ddc84;
+}
+
 /* Champions League night: navy, silver and electric blue */
 :root[data-league='ucl'] {
   --bg: #050a24;
@@ -297,6 +325,18 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
   background: linear-gradient(90deg, #1565c0, #2196f3);
   color: #ffffff;
   border-image: linear-gradient(90deg, #4fc3f7, #ffffff 50%, #ff3d9a) 1;
+}
+
+:root[data-league='es'] .ticker {
+  background: #c60b1e;
+  color: #ffc400;
+  border-image: linear-gradient(90deg, #c60b1e 0 25%, #ffc400 25% 75%, #c60b1e 75%) 1;
+}
+
+:root[data-league='it'] .ticker {
+  background: #0b4d26;
+  color: #ffffff;
+  border-image: linear-gradient(90deg, #009246 0 33.3%, #f4f4f4 33.3% 66.6%, #ce2b37 66.6%) 1;
 }
 
 :root[data-league='ucl'] .ticker {

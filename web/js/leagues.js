@@ -29,6 +29,22 @@ const LEAGUES = [
     rivals: ['Arsenal', 'Liverpool', 'Man City', 'Man United', 'Aston Villa'],
   },
   {
+    code: 'SP1',
+    name: 'LA LIGA',
+    theme: 'es',
+    track: 'es',
+    ticker: 'LA LIGA - LES PRONOS DE LA SEMAINE',
+    rivals: ['Real Madrid', 'Barcelona', 'Ath Madrid', 'Sevilla', 'Ath Bilbao'],
+  },
+  {
+    code: 'I1',
+    name: 'SERIE A',
+    theme: 'it',
+    track: 'it',
+    ticker: 'SERIE A - LES PRONOS DE LA SEMAINE',
+    rivals: ['Inter', 'Juventus', 'Milan', 'Napoli', 'Roma', 'Atalanta'],
+  },
+  {
     code: 'UCL',
     name: 'LIGUE DES CHAMPIONS',
     theme: 'ucl',

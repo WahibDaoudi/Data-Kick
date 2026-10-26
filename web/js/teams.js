@@ -77,6 +77,41 @@ const KITS = {
   "Nott'm Forest": { P: '#dd0000', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#dd0000' },
   'Sunderland': { P: '#eb172b', Q: '#111111', A: '#f4f4f4', N: '#f4f4f4', K: '#111111' },
   'Tottenham': { P: '#f4f4f4', Q: '#132257', A: '#132257', N: '#132257', K: '#f4f4f4' },
+
+  // La Liga clubs (the big ones are above)
+  'Alaves': { P: '#0055a5', Q: '#0a1f44', A: '#f4f4f4', N: '#f4f4f4', K: '#0055a5' },
+  'Ath Bilbao': { P: '#ee2523', Q: '#111111', A: '#f4f4f4', N: '#f4f4f4', K: '#111111' },
+  'Celta': { P: '#8ac3ee', Q: '#f4f4f4', A: '#c8102e', N: '#f4f4f4', K: '#8ac3ee' },
+  'Elche': { P: '#f4f4f4', Q: '#05642c', A: '#05642c', N: '#05642c', K: '#f4f4f4' },
+  'Espanol': { P: '#007fc8', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#007fc8' },
+  'Getafe': { P: '#005999', Q: '#003a66', A: '#f4f4f4', N: '#f4f4f4', K: '#005999' },
+  'La Coruna': { P: '#f4f4f4', Q: '#1b4db3', A: '#1b4db3', N: '#1b4db3', K: '#1b4db3' },
+  'Levante': { P: '#b40c40', Q: '#0b3c8c', A: '#0b3c8c', N: '#0b3c8c', K: '#0b3c8c' },
+  'Malaga': { P: '#5eb3e4', Q: '#f4f4f4', A: '#1b3e7a', N: '#f4f4f4', K: '#5eb3e4' },
+  'Osasuna': { P: '#d91a21', Q: '#0a1f44', A: '#f4f4f4', N: '#f4f4f4', K: '#0a1f44' },
+  'Santander': { P: '#f4f4f4', Q: '#00843d', A: '#00843d', N: '#00843d', K: '#111111' },
+  'Sevilla': { P: '#f4f4f4', Q: '#d9d9d9', A: '#e30613', N: '#e30613', K: '#f4f4f4' },
+  'Sociedad': { P: '#0067b1', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#0067b1' },
+  'Valencia': { P: '#f4f4f4', Q: '#111111', A: '#ee7f00', N: '#111111', K: '#111111' },
+  'Vallecano': { P: '#f4f4f4', Q: '#d9d9d9', A: '#e30613', N: '#e30613', K: '#f4f4f4' },
+
+  // Serie A clubs (the big ones are above)
+  'Atalanta': { P: '#1e71b8', Q: '#111111', A: '#111111', N: '#111111', K: '#111111' },
+  'Bologna': { P: '#a21c26', Q: '#1a2f63', A: '#1a2f63', N: '#1a2f63', K: '#1a2f63' },
+  'Cagliari': { P: '#a8102e', Q: '#002350', A: '#002350', N: '#f4f4f4', K: '#002350' },
+  'Fiorentina': { P: '#5b2a86', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#5b2a86' },
+  'Frosinone': { P: '#ffd400', Q: '#1c4fa0', A: '#1c4fa0', N: '#1c4fa0', K: '#ffd400' },
+  'Genoa': { P: '#c8102e', Q: '#0b1e46', A: '#0b1e46', N: '#f4f4f4', K: '#0b1e46' },
+  'Juventus': { P: '#f4f4f4', Q: '#111111', A: '#111111', N: '#111111', K: '#111111' },
+  'Lazio': { P: '#87d8f7', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#87d8f7' },
+  'Lecce': { P: '#ffd700', Q: '#d50000', A: '#d50000', N: '#d50000', K: '#ffd700' },
+  'Milan': { P: '#fb090b', Q: '#f4f4f4', A: '#111111', N: '#111111', K: '#111111' },
+  'Monza': { P: '#d6001c', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#d6001c' },
+  'Parma': { P: '#f4f4f4', Q: '#111111', A: '#ffd200', N: '#111111', K: '#f4f4f4' },
+  'Sassuolo': { P: '#00a752', Q: '#111111', A: '#111111', N: '#111111', K: '#00a752' },
+  'Torino': { P: '#8a1e03', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#8a1e03' },
+  'Udinese': { P: '#111111', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#111111' },
+  'Venezia': { P: '#111111', Q: '#f47920', A: '#00843d', N: '#f47920', K: '#111111' },
 };
 
 // Screen names when the database name is cryptic or has letters the pixel font lacks
@@ -85,6 +120,8 @@ const DISPLAY_NAMES = {
   'Bayern Munich': 'BAYERN', 'S. Bratislava': 'SLOVAN', 'Shakhtar Donetsk': 'SHAKHTAR',
   'Bodø/Glimt': 'BODO/GLIMT', 'Slavia Praha': 'SLAVIA', 'RB Leipzig': 'LEIPZIG', 'Club Brugge': 'BRUGES',
   "Nott'm Forest": 'FOREST', 'Crystal Palace': 'PALACE',
+  'Ath Bilbao': 'ATHLETIC', 'Espanol': 'ESPANYOL', 'La Coruna': 'DEPORTIVO', 'Santander': 'RACING',
+  'Sociedad': 'REAL SOCIEDAD', 'Vallecano': 'RAYO',
 };
 
 function displayName(name) {

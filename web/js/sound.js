@@ -300,6 +300,89 @@ const Sound = (() => {
     if (inBar % 4 === 2) noise(t, 0.04, { vol: 0.025, highpass: 7000, out });
   }
 
+  // La Liga: original rumba flamenca in A minor, Andalusian cadence (Am - G - F - E), 16 steps per bar
+  // Strummed guitar on the 3 + 3 + 2 rhythm, castanets, palmas, and an Andalusian melody
+  const ES_AM = [57, 60, 64], ES_G = [55, 59, 62], ES_F = [53, 57, 60], ES_E = [52, 56, 59];
+  const ES_BARS = [[ES_AM, 45], [ES_G, 43], [ES_F, 41], [ES_E, 40]];
+  const ES_PHRASE_1 = [
+    ...seq([[76, 4], [77, 2], [76, 2], [74, 4], [72, 4]]), ...seq([[74, 4], [72, 2], [71, 2], [72, 8]]),
+    ...seq([[72, 4], [71, 2], [69, 2], [71, 4], [72, 4]]), ...seq([[71, 4], [69, 2], [68, 2], [64, 8]]),
+  ];
+  const ES_PHRASE_2 = [
+    ...seq([[81, 4], [79, 2], [77, 2], [76, 8]]), ...seq([[79, 4], [77, 2], [76, 2], [74, 8]]),
+    ...seq([[77, 4], [76, 2], [74, 2], [72, 4], [74, 4]]), ...seq([[76, 4], [77, 4], [76, 8]]),
+  ];
+  // 4 bars of guitar alone, then the two phrases and the first one again
+  const ES_LEAD = [...Array(4 * 16).fill(0), ...ES_PHRASE_1, ...ES_PHRASE_2, ...ES_PHRASE_1];
+  const ES_STRUMS = [0, 3, 6, 8, 11, 14];
+  const ES_CASTANETS = [0, 2, 3, 4, 6, 8, 10, 11, 12, 14];
+  const ES_BPM = 112;
+
+  function playSpanish(s, t, out) {
+    const bar = Math.floor(s / 16);
+    const inBar = s % 16;
+    const step = 60 / ES_BPM / 4;
+    const [chord, root] = ES_BARS[bar % 4];
+
+    // Guitar: each strum plays the chord string after string (12 ms apart), accent on the first one
+    if (ES_STRUMS.includes(inBar)) {
+      [...chord, chord[0] + 12].forEach((n, i) => {
+        tone(midi(n), t + i * 0.012, step * 2.2, { type: 'triangle', vol: inBar === 0 ? 0.05 : 0.035, out });
+      });
+    }
+    if (inBar === 0 || inBar === 8) tone(midi(root), t, step * 6, { type: 'triangle', vol: 0.12, out });
+
+    // Castanets (short high clicks) and palmas on 2 and 4
+    if (ES_CASTANETS.includes(inBar)) noise(t, 0.015, { vol: inBar % 4 === 0 ? 0.03 : 0.018, highpass: 6000, out });
+    if (inBar === 4 || inBar === 12) noise(t, 0.06, { vol: 0.05, highpass: 1500, out });
+
+    if (ES_LEAD[s]) {
+      let len = 1;
+      while (len < 16 && ES_LEAD[(s + len) % ES_LEAD.length] === 0) len++;
+      tone(midi(ES_LEAD[s]), t, step * len * 0.92, { type: 'soft', vol: 0.045, attack: 0.02, vibrato: 0.008, echo: true, out });
+    }
+  }
+
+  // Serie A: original tarantella in A minor, 6/8 (12 steps per bar, an eighth note = 2 steps)
+  // Mandolin tremolo on the melody, oom-pah bass and chords, tambourine
+  const IT_AM = [57, 60, 64], IT_E7 = [56, 59, 62], IT_DM = [57, 62, 65];
+  const IT_BARS = [
+    [IT_AM, 45], [IT_AM, 45], [IT_E7, 40], [IT_E7, 40], [IT_E7, 40], [IT_E7, 40], [IT_AM, 45], [IT_AM, 45],
+    [IT_DM, 38], [IT_DM, 38], [IT_AM, 45], [IT_AM, 45], [IT_E7, 40], [IT_E7, 40], [IT_AM, 45], [IT_AM, 45],
+  ];
+  const IT_LEAD = [
+    ...seq([[76, 2], [76, 2], [76, 2], [77, 2], [76, 2], [74, 2]]), ...seq([[72, 2], [74, 2], [76, 4], [72, 4]]),
+    ...seq([[74, 2], [74, 2], [74, 2], [76, 2], [74, 2], [72, 2]]), ...seq([[71, 2], [72, 2], [74, 4], [71, 4]]),
+    ...seq([[74, 2], [76, 2], [77, 2], [76, 2], [74, 2], [72, 2]]), ...seq([[71, 2], [69, 2], [68, 4], [71, 4]]),
+    ...seq([[72, 2], [71, 2], [69, 2], [71, 2], [72, 2], [74, 2]]), ...seq([[76, 6], [69, 6]]),
+    ...seq([[77, 2], [77, 2], [77, 2], [79, 2], [77, 2], [76, 2]]), ...seq([[74, 2], [76, 2], [77, 4], [74, 4]]),
+    ...seq([[76, 2], [76, 2], [76, 2], [77, 2], [76, 2], [74, 2]]), ...seq([[72, 2], [74, 2], [76, 4], [72, 4]]),
+    ...seq([[71, 2], [72, 2], [74, 2], [76, 2], [77, 2], [76, 2]]), ...seq([[74, 2], [72, 2], [71, 4], [68, 4]]),
+    ...seq([[69, 2], [71, 2], [72, 2], [74, 2], [76, 2], [71, 2]]), ...seq([[69, 12]]),
+  ];
+  const IT_BPM = 230;
+
+  function playItalian(s, t, out) {
+    const bar = Math.floor(s / 12);
+    const inBar = s % 12;
+    const step = 60 / IT_BPM / 4;
+    const [chord, root] = IT_BARS[bar];
+
+    // Oom-pah: bass on beats 1 and 2 of the 6/8, chords on the other eighths
+    if (inBar === 0 || inBar === 6) tone(midi(root), t, step * 3, { type: 'triangle', vol: 0.13, out });
+    if (inBar === 2 || inBar === 4 || inBar === 8 || inBar === 10) {
+      chord.forEach((n) => tone(midi(n), t, step * 1.5, { type: 'square', vol: 0.012, out }));
+    }
+
+    // Mandolin tremolo: the current melody note picked again on every step
+    let i = s;
+    while (i > 0 && IT_LEAD[i] === 0) i--;
+    if (IT_LEAD[i]) tone(midi(IT_LEAD[i]), t, step * 0.9, { type: 'sawtooth', lowpass: 3000, vol: IT_LEAD[s] ? 0.04 : 0.028, out });
+
+    // Tambourine on the eighths, accented on the beats
+    if (inBar % 2 === 0) noise(t, 0.03, { vol: inBar % 6 === 0 ? 0.03 : 0.015, highpass: 6000, out });
+  }
+
   // Champions League night: our epic arrangement of Handel's "Zadok the Priest" (1727, public domain), in D
   // 4 bars of rising arpeggios, 8 bars of theme, 4 bars of climax one octave up
   const D = [62, 66, 69], G = [62, 67, 71], A = [61, 64, 69], A7 = [61, 64, 67];
@@ -385,6 +468,8 @@ const Sound = (() => {
     neutral: { bpm: 140, length: ARCADE_LEAD.length, tension: ARCADE_CHORDS, play: playArcade },
     l1: { bpm: 170, length: MUSETTE_LEAD.length, tension: [45, 45, 40, 40], play: playMusette },
     pl: { bpm: PL_BPM, length: PL_LEAD.length, tension: [52, 52, 47, 47], play: playPremier },
+    es: { bpm: ES_BPM, length: ES_LEAD.length, tension: [45, 43, 41, 40], play: playSpanish },
+    it: { bpm: IT_BPM, tensionBpm: 130, length: IT_LEAD.length, tension: [45, 45, 40, 40], play: playItalian },
     ucl: { bpm: ZADOK_BPM, length: ZADOK_LEAD.length, tension: [50, 50, 45, 45], play: playZadok },
   };
 
@@ -397,6 +482,9 @@ const Sound = (() => {
   let timer = null;
   let mode = 'main'; // 'main' or 'tension' (VS screen: drums and pulsing bass only)
 
+  // The tension loop keeps a steady tempo, even for a very fast track
+  const stepBpm = () => (mode === 'tension' ? track.tensionBpm || track.bpm : track.bpm);
+
   function playStep(s, t) {
     const out = musicGain;
 
@@ -404,7 +492,7 @@ const Sound = (() => {
       // Four on the floor, 16th-note bass pedal on the track's roots, 16th hats
       const inBar = s % 16;
       const root = track.tension[Math.floor(s / 16) % track.tension.length];
-      tone(midi(root - 12 + (inBar % 2) * 12), t, (60 / track.bpm / 4) * 0.8, { type: 'triangle', vol: 0.1, out });
+      tone(midi(root - 12 + (inBar % 2) * 12), t, (60 / stepBpm() / 4) * 0.8, { type: 'triangle', vol: 0.1, out });
       if (inBar % 4 === 0) tone(110, t, 0.12, { type: 'sine', to: 40, vol: 0.2, out });
       noise(t, 0.02, { vol: 0.02, highpass: 7000, out });
       return;
@@ -416,7 +504,7 @@ const Sound = (() => {
   function schedule() {
     while (nextTime < ctx.currentTime + 0.15) {
       playStep(step, nextTime);
-      nextTime += 60 / track.bpm / 4;
+      nextTime += 60 / stepBpm() / 4;
       step = (step + 1) % (mode === 'tension' ? 64 : track.length);
     }
   }

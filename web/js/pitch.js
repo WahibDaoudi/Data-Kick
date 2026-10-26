@@ -18,6 +18,8 @@ const Pitch = (() => {
     neutral: { line: '#fff1e8', net: '#c2c3c7', ball: { W: '#fff1e8', B: '#1d1d1d' }, night: false },
     l1: { line: '#fff1e8', net: '#c2c3c7', ball: { W: '#fff1e8', B: '#0055a4' }, night: false },
     pl: { line: '#ffffff', net: '#c2c3c7', ball: { W: '#ffffff', B: '#ff3d9a' }, night: false },
+    es: { line: '#ffffff', net: '#c2c3c7', ball: { W: '#ffffff', B: '#c60b1e' }, night: false },
+    it: { line: '#ffffff', net: '#c2c3c7', ball: { W: '#ffffff', B: '#009246' }, night: false },
     ucl: { line: '#d8e4ff', net: '#8f9bd0', ball: { W: '#e8ecff', B: '#1d2b9e' }, night: true },
   };
   let themeName = 'neutral';

@@ -73,6 +73,13 @@ const CLUB_LOOKS = {
   'Aston Villa': [{ skin: 2, hair: 'buzz', hairColor: 'black', beard: true }],
   'Man United': [{ skin: 5, hair: 'short', hairColor: 'darkbrown' }],
   'Roma': [{ skin: 5, hair: 'short', hairColor: 'darkbrown', beard: true }],
+
+  // La Liga and Serie A
+  'Sevilla': [{ skin: 4, hair: 'short', hairColor: 'black', beard: true }, { skin: 2, hair: 'buzz', hairColor: 'black' }],
+  'Ath Bilbao': [{ skin: 5, hair: 'short', hairColor: 'darkbrown', beard: true }, { skin: 1, hair: 'short', hairColor: 'black' }],
+  'Juventus': [{ skin: 5, hair: 'short', hairColor: 'darkbrown' }, { skin: 1, hair: 'locks', hairColor: 'black' }],
+  'Milan': [{ skin: 2, hair: 'short', hairColor: 'black' }, { skin: 6, hair: 'long', hairColor: 'brown' }],
+  'Atalanta': [{ skin: 6, hair: 'buzz', hairColor: 'blond' }, { skin: 3, hair: 'short', hairColor: 'black' }],
 };
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];

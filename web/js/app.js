@@ -72,9 +72,10 @@ const playerOf = (f, side) => ({ ...teamFor(f[side]), ...f.players[side] });
 function buildList() {
   const list = $('#fixtures');
   list.innerHTML = '';
-  const rounds = [...new Set(state.fixtures.map((f) => f.round))];
+  // One round only: the current one (the server sends a single round, the first match to play decides otherwise)
   const league = current().name;
-  $('#round').textContent = rounds.length ? `${league} - JOURNEE ${rounds.join(' + ')}` : `${league} - AUCUN MATCH A VENIR`;
+  const shown = state.fixtures.find((f) => !f.score) || state.fixtures[0];
+  $('#round').textContent = shown ? `${league} - JOURNEE ${shown.round}` : `${league} - AUCUN MATCH A VENIR`;
 
   state.fixtures.forEach((f, i) => {
     // A random player per side, kept for the VS screen
@@ -104,7 +105,8 @@ function buildList() {
     drawPlayer(c1, playerOf(f, 'home'), f.probs ? moodFor(f.probs.H) : 'neutral', false, false);
     drawPlayer(c2, playerOf(f, 'away'), f.probs ? moodFor(f.probs.A) : 'neutral', true, false);
 
-    if (!f.probs) li.classList.add('off');
+    // Faded: a match to come that cannot be predicted (a played one keeps its score readable)
+    if (!f.probs && !f.score) li.classList.add('off');
     if (f.score) li.classList.add('played');
     li.addEventListener('click', () => {
       state.index = i;
@@ -380,6 +382,13 @@ function orderFixtures(fixtures) {
 }
 
 const RELOAD_MS = 5 * 60 * 1000;
+const LIVE_RELOAD_MS = 60 * 1000;
+
+// A match of the list started less than 4 hours ago and still without its final score
+function isLive(fixtures) {
+  const now = Date.now();
+  return fixtures.some((f) => !f.score && new Date(f.kickoff) <= now && now - new Date(f.kickoff) < 4 * 3600 * 1000);
+}
 
 function loadLeague(code) {
   const startBtn = $('#start');
@@ -394,9 +403,9 @@ function loadLeague(code) {
     startBtn.classList.add('blink');
     startBtn.disabled = false;
   };
-  // Fetched less than 5 minutes ago: no need to ask the server again
+  // Fetched recently (1 minute during a match, 5 otherwise): no need to ask the server again
   const cached = state.loaded[code];
-  if (cached && Date.now() - cached.at < RELOAD_MS) return ready(cached.fixtures);
+  if (cached && Date.now() - cached.at < (isLive(cached.fixtures) ? LIVE_RELOAD_MS : RELOAD_MS)) return ready(cached.fixtures);
 
   startBtn.textContent = 'CHARGEMENT...';
   startBtn.classList.remove('blink');
@@ -411,7 +420,8 @@ function loadLeague(code) {
     });
 }
 
-// Fresh scores and verdicts every 5 minutes while the page is open: same players, cursor kept on its match
+// Fresh scores and verdicts while the page is open (every minute during a match, every 5 otherwise):
+// same players, cursor kept on its match
 function reloadFixtures() {
   const code = current().code;
   if (!code || document.hidden) return;
@@ -535,4 +545,9 @@ makeStars();
 
 // Neutral until a competition is chosen
 setLeague(-1);
-setInterval(reloadFixtures, RELOAD_MS);
+(function scheduleReload() {
+  setTimeout(() => {
+    reloadFixtures();
+    scheduleReload();
+  }, isLive(state.fixtures) ? LIVE_RELOAD_MS : RELOAD_MS);
+})();
