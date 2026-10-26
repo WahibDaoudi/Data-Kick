@@ -56,10 +56,22 @@ LIGUE1_ALIASES = {
 #Premier League names (fixturedownload) -> football-data names
 PREMIER_LEAGUE_ALIASES = {"Man Utd": "Man United", "Spurs": "Tottenham"}
 
+#La Liga and Serie A names (fixturedownload) -> football-data names
+LALIGA_ALIASES = {
+    "Athletic Club": "Ath Bilbao", "Atlético de Madrid": "Ath Madrid", "CA Osasuna": "Osasuna",
+    "Deportivo Alavés": "Alaves", "Elche CF": "Elche", "FC Barcelona": "Barcelona", "Getafe CF": "Getafe",
+    "Levante UD": "Levante", "Málaga CF": "Malaga", "R. Racing Club": "Santander", "RC Deportivo": "La Coruna",
+    "RCD Espanyol de Barcelona": "Espanol", "Rayo Vallecano": "Vallecano", "Real Betis": "Betis",
+    "Real Sociedad": "Sociedad", "Sevilla FC": "Sevilla", "Valencia CF": "Valencia", "Villarreal CF": "Villarreal",
+}
+SERIE_A_ALIASES = {"Internazionale": "Inter"}
+
 #Competitions predicted on the website: fixtures feed, feed names, kind of competition
 PREDICTED = {
     "F1": {"feed": "ligue-1", "aliases": LIGUE1_ALIASES, "kind": "league"},
     "E0": {"feed": "epl", "aliases": PREMIER_LEAGUE_ALIASES, "kind": "league"},
+    "SP1": {"feed": "la-liga", "aliases": LALIGA_ALIASES, "kind": "league"},
+    "I1": {"feed": "serie-a", "aliases": SERIE_A_ALIASES, "kind": "league"},
     "UCL": {"feed": "champions-league", "aliases": UCL_ALIASES, "kind": "cup"},
 }
 

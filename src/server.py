@@ -2,6 +2,7 @@ import json
 import os
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -9,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import joblib
 
 from competitions import PREDICTED
-from features import get_fixture_features, get_fixtures_features
+from features import get_fixture_features, get_fixtures_features, invalidate_context
 from fixtures import upcoming_fixtures
 from predictions import save_live, season_results, stored_predictions
 from update import update
@@ -20,8 +21,10 @@ MODEL_PATH = ROOT / "models" / "model.joblib"
 PORT = int(os.getenv("PORT", 8000))
 #127.0.0.1: only this machine (local use, or behind Caddy in production)
 HOST = os.getenv("HOST", "127.0.0.1")
-#Scores and predictions of the week recomputed every 10 minutes (in the background, visitors never wait)
-CACHE_SECONDS = 10 * 60
+#Scores of the current round, read in the background (visitors only read the cache, they never wait):
+#every 2 minutes while a match is being played or waiting for its final score, every 10 minutes otherwise
+LIVE_SECONDS = 2 * 60
+IDLE_SECONDS = 10 * 60
 #New results in the database (features of the next matches) every 3 hours
 UPDATE_SECONDS = 3 * 60 * 60
 
@@ -41,9 +44,9 @@ def predict(home, away):
     return to_probs(get_fixture_features(home, away))
 
 
-def week_predictions(competition):
-    #Upcoming matches of a competition with their probabilities, cached for 30 minutes
-    if competition in cache and time.time() - cache[competition][0] < CACHE_SECONDS:
+def week_predictions(competition, force=False):
+    #Matches of the current round with their probabilities and verdicts; the cache unless force (background refresh)
+    if competition in cache and not force:
         return cache[competition][1]
 
     matches = upcoming_fixtures(competition)
@@ -118,20 +121,45 @@ def results_with_fresh(competition):
     return data
 
 
-def refresh(with_update):
-    #Every competition recomputed (fresh scores, live predictions stored); new results in the database first if asked
-    #Any error is printed and skipped: the next refresh retries, the loop never dies
-    if with_update:
-        try:
-            update()
-        except Exception as e:
-            print(f"Update skipped: {e!r}")
-    cache.clear()
+def is_live(matches):
+    #A match started less than 4 hours ago and still without its final score
+    now = datetime.now(timezone.utc)
+    for m in matches:
+        kickoff = datetime.strptime(m["kickoff"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        if not m["score"] and kickoff <= now <= kickoff + timedelta(hours=4):
+            return True
+    return False
+
+
+def refresh(competition):
+    #Fresh scores and predictions of one competition; any error is printed and skipped, the next round retries
+    try:
+        week_predictions(competition, force=True)
+    except Exception as e:
+        print(f"{competition} refresh skipped: {e!r}")
+
+
+def background():
+    #Every competition now (switching is instant), then each one at its own pace, new database results every 3 hours
     for competition in PREDICTED:
-        try:
-            week_predictions(competition)
-        except Exception as e:
-            print(f"{competition} predictions skipped: {e!r}")
+        refresh(competition)
+    last_update = time.time()
+    while True:
+        time.sleep(30)
+        if time.time() - last_update >= UPDATE_SECONDS:
+            try:
+                update()
+            except Exception as e:
+                print(f"Update skipped: {e!r}")
+            #New results change the form of the teams: every prediction is recomputed
+            invalidate_context()
+            cache.clear()
+            last_update = time.time()
+        for competition in PREDICTED:
+            age = time.time() - cache[competition][0] if competition in cache else float("inf")
+            pace = LIVE_SECONDS if competition in cache and is_live(cache[competition][1]) else IDLE_SECONDS
+            if age >= pace:
+                refresh(competition)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -187,17 +215,6 @@ if __name__ == "__main__":
     except OSError as e:
         print(f"Update skipped (offline?): {e}")
 
-    #In the background: every competition predicted now (switching is instant, live predictions stored),
-    #then again every CACHE_SECONDS for fresh scores, with new database results every UPDATE_SECONDS
-    def background():
-        refresh(with_update=False)
-        last_update = time.time()
-        while True:
-            time.sleep(CACHE_SECONDS - 30)
-            due = time.time() - last_update >= UPDATE_SECONDS
-            refresh(with_update=due)
-            if due:
-                last_update = time.time()
     threading.Thread(target=background, daemon=True).start()
 
     server = ThreadingHTTPServer((HOST, PORT), Handler)

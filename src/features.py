@@ -1,4 +1,5 @@
 import os
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -230,15 +231,29 @@ def get_fixture_features(home_name, away_name, date=None, kind="league", neutral
     return result
 
 
+#State of every team after the last match in the database: the slow part (~4 s), shared by every competition
+#Rebuilt when new results are inserted (invalidate_context) or after CONTEXT_SECONDS
+CONTEXT_SECONDS = 60 * 60
+_context = {"at": 0.0, "value": None}
+
+
+def fixtures_context():
+    if _context["value"] is None or time.time() - _context["at"] > CONTEXT_SECONDS:
+        df = load_matches()
+        _, state = build_features(df)
+        #Latest season of the database
+        _context.update(at=time.time(), value=(state, load_team_ids(), df["season_id"].iloc[-1]))
+    return _context["value"]
+
+
+def invalidate_context():
+    _context["value"] = None
+
+
 def get_fixtures_features(fixtures, kind="league", neutral=False):
     #Same for several (home_name, away_name, date) matches with a single database load
     #Each item is a one-row DataFrame, or an error message
-    df = load_matches()
-    _, state = build_features(df)
-    team_ids = load_team_ids()
-
-    #Latest season of the database
-    s_id = df["season_id"].iloc[-1]
+    state, team_ids, s_id = fixtures_context()
 
     results = []
     for home_name, away_name, date in fixtures:

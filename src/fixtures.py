@@ -15,10 +15,11 @@ def load_feed(competition, now):
         return json.load(res)
 
 
-def upcoming_fixtures(competition="F1", days=7, keep_days=2, now=None):
-    #The current round (the last one that has started: played matches with their score, and the ones still to come),
-    #kept until `keep_days` after its last match, plus the matches of the next `days` days
-    #(or the next round if nothing is coming within `days`)
+def upcoming_fixtures(competition="F1", keep_days=2, horizon_days=7, now=None):
+    #The current round only: its played matches (with their final score) and the ones still to come
+    #Current round = the highest round already started. Once all its matches are played, it stays `keep_days`
+    #after the last one, then the next round takes its place (or as soon as the next round starts).
+    #A match postponed more than `horizon_days` after the start of its round does not hold it back, and is not shown.
     now = now or datetime.now(timezone.utc)
     aliases = PREDICTED[competition]["aliases"]
     matches = []
@@ -32,21 +33,26 @@ def upcoming_fixtures(competition="F1", days=7, keep_days=2, now=None):
             "score": [m["HomeTeamScore"], m["AwayTeamScore"]] if played else None,
         })
 
-    #Highest round already started: a match of an older round played late (postponed) does not bring it back
-    started = [m for m in matches if m["kickoff"] <= now]
-    current = max((m["round"] for m in started), default=None)
-    week = [m for m in matches if m["round"] == current]
-    #A finished round leaves the list `keep_days` after its last match
-    if week and max(m["kickoff"] for m in week) < now - timedelta(days=keep_days):
-        week = []
+    def of_round(r):
+        #Window counted from today for a started round, from its first match for a round to come
+        games = [m for m in matches if m["round"] == r]
+        if not games:
+            return []
+        horizon = max(now, min(m["kickoff"] for m in games)) + timedelta(days=horizon_days)
+        return [m for m in games if m["score"] or m["kickoff"] <= horizon]
 
-    upcoming = sorted((m for m in matches if m["kickoff"] > now), key=lambda m: m["kickoff"])
-    soon = [m for m in upcoming if m["kickoff"] <= now + timedelta(days=days)]
-    if not soon and upcoming:
-        soon = [m for m in upcoming if m["round"] == upcoming[0]["round"]]
-    week += [m for m in soon if m not in week]
+    #Highest round already started: a postponed match of an older round played late does not bring it back
+    current = max((m["round"] for m in matches if m["kickoff"] <= now), default=None)
+    if current is not None:
+        week = of_round(current)
+        finished = all(m["score"] for m in week)
+        if finished and max(m["kickoff"] for m in week) < now - timedelta(days=keep_days):
+            current = None
+    if current is None:
+        upcoming = sorted((m for m in matches if m["kickoff"] > now), key=lambda m: m["kickoff"])
+        current = upcoming[0]["round"] if upcoming else max((m["round"] for m in matches), default=None)
 
-    week.sort(key=lambda m: m["kickoff"])
+    week = sorted(of_round(current), key=lambda m: m["kickoff"])
     for m in week:
         m["kickoff"] = m["kickoff"].strftime("%Y-%m-%dT%H:%M:%SZ")
     return week
