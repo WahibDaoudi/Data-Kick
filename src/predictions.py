@@ -95,6 +95,36 @@ def stored_predictions(competition, matches):
     return rows
 
 
+def stored_results(competition, matches):
+    #Final scores already in the database for these matches: {(date, home, away): [home goals, away goals]}
+    #Found by the fixture (same teams, nearest date), like the predictions
+    if not matches:
+        return {}
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT m.match_date, th.name, ta.name, m.home_goals, m.away_goals
+        FROM matches m
+        JOIN competitions c ON c.id = m.competition_id
+        JOIN teams th ON th.id = m.home_team_id
+        JOIN teams ta ON ta.id = m.away_team_id
+        WHERE c.code = %s AND m.match_date >= %s;
+    """, (competition, f"{season_start()}-07-01"))
+    by_fixture = {}
+    for d, h, a, hg, ag in cur.fetchall():
+        by_fixture.setdefault((h, a), []).append((d, [hg, ag]))
+    conn.close()
+
+    scores = {}
+    for m in matches:
+        day = date.fromisoformat(m["kickoff"][:10])
+        near = [(abs((d - day).days), score) for d, score in by_fixture.get((m["home"], m["away"]), [])]
+        near = [x for x in near if x[0] <= SAME_FIXTURE_DAYS]
+        if near:
+            scores[(m["kickoff"][:10], m["home"], m["away"])] = min(near, key=lambda x: x[0])[1]
+    return scores
+
+
 def backtest():
     #Predictions of this season's played matches by a model trained on previous seasons only
     #Features only use information before each match, the model never saw this season: real out-of-sample predictions

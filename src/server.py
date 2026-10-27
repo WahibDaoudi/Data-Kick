@@ -12,7 +12,7 @@ import joblib
 from competitions import PREDICTED
 from features import get_fixture_features, get_fixtures_features, invalidate_context
 from fixtures import upcoming_fixtures
-from predictions import save_live, season_results, stored_predictions
+from predictions import save_live, season_results, stored_predictions, stored_results
 from update import update
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -25,8 +25,8 @@ HOST = os.getenv("HOST", "127.0.0.1")
 #every 2 minutes while a match is being played or waiting for its final score, every 10 minutes otherwise
 LIVE_SECONDS = 2 * 60
 IDLE_SECONDS = 10 * 60
-#New results in the database (features of the next matches) every 3 hours
-UPDATE_SECONDS = 3 * 60 * 60
+#New results in the database every hour: features of the next matches, and final scores the fixtures feed is late on
+UPDATE_SECONDS = 60 * 60
 
 #Loaded once at startup
 model = joblib.load(MODEL_PATH)
@@ -53,6 +53,14 @@ def week_predictions(competition, force=False):
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     started = [m for m in matches if m["kickoff"] <= now]
     to_come = [m for m in matches if m["kickoff"] > now]
+
+    #A final score the fixtures feed has not published yet (it can lag a day, e.g. Monday games): from the database,
+    #filled every hour from football-data.co.uk
+    missing = [m for m in started if not m["score"]]
+    if missing:
+        scores = stored_results(competition, missing)
+        for m in missing:
+            m["score"] = scores.get((m["kickoff"][:10], m["home"], m["away"]))
 
     #Started or played: the prediction stored before kick-off (never recomputed: the model could see the result),
     #and the verdict once the score is known (live predictions only, like the accuracy screen)
@@ -86,7 +94,8 @@ def results_with_fresh(competition):
     #Season results from the database, plus the matches whose final score is already in the fixtures feed
     #but not yet in the database (league results reach the database 1 to 2 days after the match)
     data = season_results(competition)
-    known = {(m["date"], m["home"], m["away"]) for m in data["matches"]}
+    #By fixture: the database date of a moved match can differ from the feed's
+    known = {(m["home"], m["away"]) for m in data["matches"]}
     try:
         fixtures = week_predictions(competition)
     except OSError:
@@ -96,7 +105,7 @@ def results_with_fresh(competition):
     for f in fixtures:
         key = (f["kickoff"][:10], f["home"], f["away"])
         #Same rule as the database results: a live prediction made before kick-off, and a final score
-        if not f["score"] or f["correct"] is None or f.get("source") != "live" or key in known:
+        if not f["score"] or f["correct"] is None or f.get("source") != "live" or (f["home"], f["away"]) in known:
             continue
         hg, ag = f["score"]
         fresh.append({
