@@ -39,6 +39,7 @@ The server (`src/server.py`) serves the static site in `web/` and two endpoints:
 - `GET /api/results?competition=F1|E0|SP1|I1|UCL`: played matches of the season with their prediction, the result and the accuracy
 - `GET /api/predict?home=Paris%20SG&away=Marseille`: `{"probs": {"H": ..., "D": ..., "A": ...}}`
 
-Online deployment (Oracle Cloud free tier, own domain, HTTPS): see [deploy/README.md](deploy/README.md).
+Online: **https://datakick.duckdns.org**, hosted for free on Render (website, deployed on every push)
+and Supabase (PostgreSQL). Setup guide: [deploy/RENDER.md](deploy/RENDER.md).
 
 Set `PORT` (and `HOST`) to use another port or interface. Keys: left/right to pick the competition on the title screen, arrows, Enter, Esc, M music on/off, S sound effects on/off.

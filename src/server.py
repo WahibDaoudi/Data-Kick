@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 WEB_DIR = ROOT / "web"
 MODEL_PATH = ROOT / "models" / "model.joblib"
 PORT = int(os.getenv("PORT", 8000))
-#127.0.0.1: only this machine (local use, or behind Caddy in production)
+#127.0.0.1: only this machine (local use); 0.0.0.0 on Render (set in render.yaml)
 HOST = os.getenv("HOST", "127.0.0.1")
 #Scores of the current round, read in the background (visitors only read the cache, they never wait):
 #every 2 minutes while a match is being played or waiting for its final score, every 10 minutes otherwise
@@ -149,7 +149,12 @@ def refresh(competition):
 
 
 def background():
-    #Every competition now (switching is instant), then each one at its own pace, new database results every 3 hours
+    #Fresh results first (features of upcoming matches depend on them), then every competition (switching is instant),
+    #then each one at its own pace, new database results every UPDATE_SECONDS
+    try:
+        update()
+    except Exception as e:
+        print(f"Update skipped: {e!r}")
     for competition in PREDICTED:
         refresh(competition)
     last_update = time.time()
@@ -218,12 +223,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    #Fresh results first: features of upcoming matches depend on them
-    try:
-        update()
-    except OSError as e:
-        print(f"Update skipped (offline?): {e}")
-
+    #The port opens right away (hosts like Render check it quickly); results and predictions load in the background
     threading.Thread(target=background, daemon=True).start()
 
     server = ThreadingHTTPServer((HOST, PORT), Handler)
