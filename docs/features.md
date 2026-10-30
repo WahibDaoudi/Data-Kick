@@ -1,6 +1,6 @@
 # Feature Matrix — Data-Kick
 
-Training DataFrame built by `src/features.py` from the `matches` table. One row per match, chronological loop: every feature uses only information available **before** kick-off (no data leakage).
+Training DataFrame built by `src/features.py` from the `matches` table: every competition (11 domestic leagues + Champions League) in **one chronological loop**. Every feature uses only information available **before** kick-off (no data leakage).
 
 ---
 
@@ -41,11 +41,16 @@ DataFrame (features + target) -> train.py
 | season_ppg_diff          | float       | Points per game in the current season       |
 | rest_days_diff           | int         | Days of rest (capped at 14)                 |
 +--------------------------+-------------+---------------------------------------------+
+| competition              | str         | Competition code (F1, E0..., UCL)           |
+| history_weight           | float       | Real matches in the window / 5 (both teams) |
+| is_cup                   | int         | 1 for a European cup match                  |
+| neutral                  | int         | 1 for a neutral venue (finals)              |
++--------------------------+-------------+---------------------------------------------+
 | target                   | str         | Result to predict: H, D or A                |
 +--------------------------+-------------+---------------------------------------------+
 ```
 
-13 columns: 3 identifiers, 9 features, 1 target.
+17 columns: 3 identifiers, 9 features (model inputs), 4 context columns, 1 target.
 
 ---
 
@@ -70,7 +75,16 @@ All features are `home team - away team`, except `abs_elo_diff`.
 ## 4. Construction rules
 
 - **No data leakage**: features are computed from past matches only, then the match result updates the history.
-- **Elo rating**: every team starts at 1500. After each match: `elo += K * (actual - expected)`, with `K = 20` and a home advantage of 65 points in the expected score. Ratings carry over between seasons.
-- **Minimum history**: a match becomes a row only if both teams have at least 5 previous matches.
-- **Missing history**: empty context or season history defaults to 0, and a missing rest period defaults to 7 days.
+- **One history per club, every competition**: form, rest days and Elo use league and European matches together. A club has the same name (and `team_id`) in its league and in Europe.
+- **Elo rating, one pool for all competitions**:
+  - A club starts at the level of its league (`LEAGUE_ELO`: Premier League 1600, La Liga 1590, Serie A / Bundesliga 1570, Ligue 1 1540 ... Greece / Scotland 1450). Clubs only seen in Europe (Austria, Serbia, Ukraine...) start at 1450. Promoted clubs start 100 below their league.
+  - After each match: `elo += K * (actual - expected)`. League: `K = 20`, home advantage 65. European cup: `K = 30` (rarer matches, they calibrate the leagues against each other), home advantage 50. Neutral venue: no home advantage.
+  - New season: every rating is pulled 25% back toward the level of its league.
+- **Flexible window (fallback)**: the "last 5" features are means over 5 slots. When a club has fewer than 5 past matches, the empty slots take a default value (database averages: 1.374 points, 0 goal difference, 4.41 shots on target). With 5 matches the feature is the plain mean, with none it is the average club.
+  - Venue form (`context_points_diff`) fills its empty slots with the club's overall form.
+  - Shots on target: European matches have no stats, so the window skips them and looks further back in the league.
+  - `history_weight` = min(real matches of the two clubs, 5) / 5.
+- **Season form**: points per game in the domestic league only (1.374 before the first match of the season).
+- **Rows kept**: every match where both clubs have at least 1 past match (`history_weight >= 0.2`). Before, a match needed 5 past matches per club.
+- **Missing rest period** defaults to 7 days.
 - **Target**: `H` home win, `D` draw, `A` away win (same codes as `matches.result`).
