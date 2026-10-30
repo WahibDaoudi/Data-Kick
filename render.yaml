@@ -1,0 +1,24 @@
+# Render Blueprint: the website as a free web service, built from this repository on every push
+# Database: PostgreSQL on Supabase (DATABASE_URL, set in the Render dashboard). Guide: deploy/RENDER.md
+services:
+  - type: web
+    name: data-kick
+    runtime: python
+    plan: free
+    region: frankfurt
+    # The disk is wiped on every deploy: the model is trained again from the database during the build
+    buildCommand: pip install -r requirements-prod.txt && cd src && python train.py
+    startCommand: cd src && python server.py
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      # Render routes the traffic to PORT (set by Render) on every interface
+      - key: HOST
+        value: 0.0.0.0
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # Asked once when the Blueprint is created: the Supabase connection string
+      - key: DATABASE_URL
+        sync: false
