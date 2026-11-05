@@ -112,6 +112,25 @@ const KITS = {
   'Torino': { P: '#8a1e03', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#8a1e03' },
   'Udinese': { P: '#111111', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#111111' },
   'Venezia': { P: '#111111', Q: '#f47920', A: '#00843d', N: '#f47920', K: '#111111' },
+
+  // Bundesliga clubs (the big ones are above)
+  'Augsburg': { P: '#ba3733', Q: '#46714d', A: '#f4f4f4', N: '#f4f4f4', K: '#f4f4f4' },
+  'Ein Frankfurt': { P: '#111111', Q: '#111111', A: '#e1000f', N: '#e1000f', K: '#111111' },
+  'Elversberg': { P: '#111111', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#111111' },
+  'FC Koln': { P: '#f4f4f4', Q: '#ed1c24', A: '#ed1c24', N: '#ed1c24', K: '#f4f4f4' },
+  'Freiburg': { P: '#d3151f', Q: '#111111', A: '#f4f4f4', N: '#f4f4f4', K: '#111111' },
+  'Hamburg': { P: '#f4f4f4', Q: '#e2001a', A: '#0a3d91', N: '#0a3d91', K: '#0a3d91' },
+  'Hoffenheim': { P: '#1961b5', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#1961b5' },
+  'Leverkusen': { P: '#e32221', Q: '#111111', A: '#111111', N: '#111111', K: '#111111' },
+  "M'gladbach": { P: '#f4f4f4', Q: '#111111', A: '#00a35f', N: '#111111', K: '#f4f4f4' },
+  'Mainz': { P: '#d6001c', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#d6001c' },
+  'Paderborn': { P: '#00559e', Q: '#111111', A: '#111111', N: '#f4f4f4', K: '#00559e' },
+  'Heidenheim': { P: '#e2001a', Q: '#003f7d', A: '#f4f4f4', N: '#f4f4f4', K: '#e2001a' },
+  'St Pauli': { P: '#6b3e26', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#6b3e26' },
+  'Wolfsburg': { P: '#65b32e', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#65b32e' },
+  'Schalke 04': { P: '#004d9d', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#004d9d' },
+  'Union Berlin': { P: '#d4011d', Q: '#f4f4f4', A: '#ffd400', N: '#f4f4f4', K: '#d4011d' },
+  'Werder Bremen': { P: '#1d9053', Q: '#f4f4f4', A: '#f4f4f4', N: '#f4f4f4', K: '#1d9053' },
 };
 
 // Screen names when the database name is cryptic or has letters the pixel font lacks
@@ -122,6 +141,8 @@ const DISPLAY_NAMES = {
   "Nott'm Forest": 'FOREST', 'Crystal Palace': 'PALACE',
   'Ath Bilbao': 'ATHLETIC', 'Espanol': 'ESPANYOL', 'La Coruna': 'DEPORTIVO', 'Santander': 'RACING',
   'Sociedad': 'REAL SOCIEDAD', 'Vallecano': 'RAYO',
+  'Ein Frankfurt': 'FRANKFURT', 'FC Koln': 'KOLN', "M'gladbach": 'GLADBACH', 'Schalke 04': 'SCHALKE',
+  'Union Berlin': 'UNION', 'Werder Bremen': 'BREMEN',
 };
 
 function displayName(name) {

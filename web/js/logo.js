@@ -45,11 +45,17 @@ const Logo = (() => {
     '#009246', '#009246', '#009246', '#009246', '#00602e', '#00602e', '#00602e'];
   const IT_RED = ['#ffffff', '#ffffff', '#ff9aa1', '#ff9aa1', '#e8505b', '#e8505b', '#e8505b',
     '#ce2b37', '#ce2b37', '#ce2b37', '#ce2b37', '#8f1820', '#8f1820', '#8f1820'];
+  // Bundesliga: steel DATA, KICK from red to gold
+  const DE_STEEL = ['#ffffff', '#ffffff', '#e4e4e8', '#e4e4e8', '#c4c4cb', '#c4c4cb', '#c4c4cb',
+    '#a0a0a9', '#a0a0a9', '#a0a0a9', '#a0a0a9', '#74747e', '#74747e', '#74747e'];
+  const DE_FLAME = ['#ffffff', '#ffffff', '#ff8078', '#ff8078', '#e8202a', '#e8202a', '#dd0000',
+    '#dd0000', '#f07a00', '#f07a00', '#ffb000', '#ffce00', '#ffce00', '#ffce00'];
   const THEMES = {
     neutral: { first: WARM, second: COOL, shadow: '#7e2553', ballDark: '#43454c' },
     l1: { first: FR_BLUE, second: FR_RED, shadow: '#0b2257', ballDark: '#0055a4' },
     pl: { first: PL_BLUE, second: PL_PINK, shadow: '#0a2a6e', ballDark: '#ff3d9a' },
     es: { first: ES_RED, second: ES_GOLD, shadow: '#5a0710', ballDark: '#c60b1e' },
+    de: { first: DE_STEEL, second: DE_FLAME, shadow: '#3a0a0a', ballDark: '#dd0000' },
     it: { first: IT_GREEN, second: IT_RED, shadow: '#0b3d1f', ballDark: '#009246' },
     ucl: { first: SILVER, second: NIGHT_BLUE, shadow: '#0a1a5c', ballDark: '#1d2b9e' },
   };

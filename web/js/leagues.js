@@ -37,6 +37,14 @@ const LEAGUES = [
     rivals: ['Real Madrid', 'Barcelona', 'Ath Madrid', 'Sevilla', 'Ath Bilbao'],
   },
   {
+    code: 'D1',
+    name: 'BUNDESLIGA',
+    theme: 'de',
+    track: 'de',
+    ticker: 'BUNDESLIGA - LES PRONOS DE LA SEMAINE',
+    rivals: ['Bayern Munich', 'Dortmund', 'Leverkusen', 'RB Leipzig', 'Stuttgart', 'Ein Frankfurt'],
+  },
+  {
     code: 'I1',
     name: 'SERIE A',
     theme: 'it',

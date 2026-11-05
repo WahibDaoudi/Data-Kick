@@ -72,6 +72,20 @@ body {
   --ok: #ffd23f;
 }
 
+/* Bundesliga: anthracite, red and gold */
+:root[data-league='de'] {
+  --bg: #0e0e11;
+  --panel: #26262b;
+  --panel-hi: #3a3a41;
+  --ink: #ffffff;
+  --muted: #c9b37a;
+  --stage: #f1e7c9;
+  --p1: #ffce00;
+  --p2: #ff4a3d;
+  --draw: #ffffff;
+  --ok: #ffce00;
+}
+
 /* Serie A: deep green, white and red */
 :root[data-league='it'] {
   --bg: #06210f;
@@ -331,6 +345,12 @@ h2 { font-size: clamp(14px, 1.6vw, 24px); color: var(--draw); }
   background: #c60b1e;
   color: #ffc400;
   border-image: linear-gradient(90deg, #c60b1e 0 25%, #ffc400 25% 75%, #c60b1e 75%) 1;
+}
+
+:root[data-league='de'] .ticker {
+  background: #1a1a1e;
+  color: #ffce00;
+  border-image: linear-gradient(90deg, #1a1a1e 0 33.3%, #dd0000 33.3% 66.6%, #ffce00 66.6%) 1;
 }
 
 :root[data-league='it'] .ticker {

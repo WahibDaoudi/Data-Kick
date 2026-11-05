@@ -343,6 +343,54 @@ const Sound = (() => {
     }
   }
 
+  // Bundesliga: original oompah polka in F, 2/4 (8 steps per bar, an eighth note = 2 steps)
+  // Tuba on the beats, brass chords and snare on the offbeats, a bright brass melody
+  const DE_F = [57, 60, 65], DE_C7 = [55, 58, 64], DE_BB = [58, 62, 65];
+  // Chord, root and fifth of the tuba
+  const DE_BARS = [
+    [DE_F, 41, 48], [DE_F, 41, 48], [DE_C7, 48, 43], [DE_C7, 48, 43], [DE_C7, 48, 43], [DE_C7, 48, 43], [DE_F, 41, 48], [DE_F, 41, 48],
+    [DE_BB, 46, 41], [DE_BB, 46, 41], [DE_F, 41, 48], [DE_F, 41, 48], [DE_C7, 48, 43], [DE_C7, 48, 43], [DE_F, 41, 48], [DE_F, 41, 48],
+  ];
+  const DE_THEME = [
+    ...seq([[72, 2], [69, 2], [72, 2], [77, 2]]), ...seq([[81, 4], [77, 4]]),
+    ...seq([[79, 2], [76, 2], [79, 2], [82, 2]]), ...seq([[81, 2], [79, 2], [76, 4]]),
+    ...seq([[76, 2], [77, 2], [79, 2], [76, 2]]), ...seq([[72, 2], [76, 2], [79, 4]]),
+    ...seq([[77, 2], [76, 2], [74, 2], [76, 2]]), ...seq([[77, 4], [72, 4]]),
+    ...seq([[74, 2], [77, 2], [82, 2], [77, 2]]), ...seq([[86, 4], [82, 4]]),
+    ...seq([[81, 2], [77, 2], [72, 2], [77, 2]]), ...seq([[81, 4], [77, 4]]),
+    ...seq([[79, 2], [81, 2], [82, 2], [79, 2]]), ...seq([[76, 2], [77, 2], [79, 4]]),
+    ...seq([[77, 2], [81, 2], [79, 2], [76, 2]]), ...seq([[77, 8]]),
+  ];
+  const DE_LEAD = [...DE_THEME, ...DE_THEME];
+  const DE_BPM = 124;
+
+  function playGerman(s, t, out) {
+    const bar = Math.floor(s / 8);
+    const inBar = s % 8;
+    const step = 60 / DE_BPM / 4;
+    const [chord, root, fifth] = DE_BARS[bar % DE_BARS.length];
+
+    // Oom-pah: tuba and bass drum on the beats, brass chords and snare on the offbeats
+    if (inBar === 0 || inBar === 4) {
+      tone(midi(inBar === 0 ? root : fifth), t, step * 1.6, { type: 'triangle', vol: 0.14, out });
+      tone(90, t, 0.12, { type: 'sine', to: 45, vol: 0.14, out });
+    }
+    if (inBar === 2 || inBar === 6) {
+      chord.forEach((n) => tone(midi(n), t, step * 1.1, { type: 'sawtooth', lowpass: 1800, vol: 0.016, out }));
+      noise(t, 0.05, { vol: 0.03, highpass: 1500, out });
+    }
+    // A cymbal opens every chorus
+    if (s % (16 * 8) === 0) noise(t, 0.5, { vol: 0.04, highpass: 5000, out });
+
+    if (DE_LEAD[s]) {
+      let len = 1;
+      while (len < 8 && DE_LEAD[(s + len) % DE_LEAD.length] === 0) len++;
+      const dur = step * len * 0.85;
+      tone(midi(DE_LEAD[s]), t, dur, { type: 'sawtooth', lowpass: 2600, vol: 0.038, attack: 0.008, echo: true, out });
+      tone(midi(DE_LEAD[s] - 12), t, dur, { type: 'soft', vol: 0.03, attack: 0.008, out });
+    }
+  }
+
   // Serie A: original tarantella in A minor, 6/8 (12 steps per bar, an eighth note = 2 steps)
   // Mandolin tremolo on the melody, oom-pah bass and chords, tambourine
   const IT_AM = [57, 60, 64], IT_E7 = [56, 59, 62], IT_DM = [57, 62, 65];
@@ -469,6 +517,7 @@ const Sound = (() => {
     l1: { bpm: 170, length: MUSETTE_LEAD.length, tension: [45, 45, 40, 40], play: playMusette },
     pl: { bpm: PL_BPM, length: PL_LEAD.length, tension: [52, 52, 47, 47], play: playPremier },
     es: { bpm: ES_BPM, length: ES_LEAD.length, tension: [45, 43, 41, 40], play: playSpanish },
+    de: { bpm: DE_BPM, length: DE_LEAD.length, tension: [41, 41, 48, 48], play: playGerman },
     it: { bpm: IT_BPM, tensionBpm: 130, length: IT_LEAD.length, tension: [45, 45, 40, 40], play: playItalian },
     ucl: { bpm: ZADOK_BPM, length: ZADOK_LEAD.length, tension: [50, 50, 45, 45], play: playZadok },
   };

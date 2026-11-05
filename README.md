@@ -3,7 +3,7 @@ Football match prediction with Python, SQL and machine learning
 
 ## Run the app
 
-Retro arcade website: this week's matches with the model's H/D/A probabilities, for **Ligue 1**, the **Premier League**, **La Liga**, **Serie A** and the **Champions League**.
+Retro arcade website: this week's matches with the model's H/D/A probabilities, for **Ligue 1**, the **Premier League**, **La Liga**, the **Bundesliga**, **Serie A** and the **Champions League**.
 
 ```bash
 docker compose up -d                 # PostgreSQL
@@ -35,8 +35,8 @@ only, so the accuracy is always measured out of sample.
 
 The server (`src/server.py`) serves the static site in `web/` and two endpoints:
 
-- `GET /api/fixtures?competition=F1|E0|SP1|I1|UCL`: matches of the next 7 days (fixturedownload.com) with their probabilities, cached 30 min
-- `GET /api/results?competition=F1|E0|SP1|I1|UCL`: played matches of the season with their prediction, the result and the accuracy
+- `GET /api/fixtures?competition=F1|E0|SP1|D1|I1|UCL`: matches of the next 7 days (fixturedownload.com) with their probabilities, cached 30 min
+- `GET /api/results?competition=F1|E0|SP1|D1|I1|UCL`: played matches of the season with their prediction, the result and the accuracy
 - `GET /api/predict?home=Paris%20SG&away=Marseille`: `{"probs": {"H": ..., "D": ..., "A": ...}}`
 
 Online: **https://datakick.duckdns.org**, hosted for free on Render (website, deployed on every push)

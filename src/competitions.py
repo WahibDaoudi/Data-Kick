@@ -66,11 +66,23 @@ LALIGA_ALIASES = {
 }
 SERIE_A_ALIASES = {"Internazionale": "Inter"}
 
+#Bundesliga names (fixturedownload) -> football-data names
+BUNDESLIGA_ALIASES = {
+    "1. FC Köln": "FC Koln", "1. FC Union Berlin": "Union Berlin", "1. FSV Mainz 05": "Mainz",
+    "Bayer 04 Leverkusen": "Leverkusen", "Borussia Dortmund": "Dortmund", "Borussia Mönchengladbach": "M'gladbach",
+    "Eintracht Frankfurt": "Ein Frankfurt", "FC Augsburg": "Augsburg", "FC Bayern München": "Bayern Munich",
+    "FC Schalke 04": "Schalke 04", "Hamburger SV": "Hamburg", "SC Paderborn 07": "Paderborn",
+    "SV Elversberg": "Elversberg", "SV Werder Bremen": "Werder Bremen", "Sport-Club Freiburg": "Freiburg",
+    "TSG Hoffenheim": "Hoffenheim", "VfB Stuttgart": "Stuttgart", "VfL Wolfsburg": "Wolfsburg",
+    "1. FC Heidenheim 1846": "Heidenheim", "FC St. Pauli": "St Pauli",
+}
+
 #Competitions predicted on the website: fixtures feed, feed names, kind of competition
 PREDICTED = {
     "F1": {"feed": "ligue-1", "aliases": LIGUE1_ALIASES, "kind": "league"},
     "E0": {"feed": "epl", "aliases": PREMIER_LEAGUE_ALIASES, "kind": "league"},
     "SP1": {"feed": "la-liga", "aliases": LALIGA_ALIASES, "kind": "league"},
+    "D1": {"feed": "bundesliga", "aliases": BUNDESLIGA_ALIASES, "kind": "league"},
     "I1": {"feed": "serie-a", "aliases": SERIE_A_ALIASES, "kind": "league"},
     "UCL": {"feed": "champions-league", "aliases": UCL_ALIASES, "kind": "cup"},
 }

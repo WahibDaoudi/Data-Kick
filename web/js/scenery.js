@@ -1,5 +1,5 @@
 // Stadium band drawn above the pitch (title) and at the bottom of the other screens:
-// sky, skyline and stands, one look per theme (neutral, l1, pl, es, it, ucl).
+// sky, skyline and stands, one look per theme (neutral, l1, pl, es, de, it, ucl).
 
 const Scenery = (() => {
   const HEIGHT = 30;
@@ -9,6 +9,7 @@ const Scenery = (() => {
     l1: ['#3a6fd8', '#4f82e0', '#6b9ae8', '#8fb4f0'],
     pl: ['#1e78d8', '#2f8fe0', '#45a4ee', '#5cb6f5'],
     es: ['#f28c28', '#f7a440', '#fbbd5c', '#ffd27f'],
+    de: ['#5d7fa8', '#7395bb', '#8fadcc', '#b0c7de'],
     it: ['#3a8fd8', '#58a6e6', '#7cbdf0', '#a6d4f7'],
     ucl: ['#03071c', '#050a24', '#08113a', '#0c1850'],
   };
@@ -17,6 +18,7 @@ const Scenery = (() => {
     l1: ['#0055a4', '#f4f4f4', '#ef4135', '#0b2257', '#c2c3c7'],
     pl: ['#1e88e5', '#ff3d9a', '#ffffff', '#0d47a1', '#7fd8ff'],
     es: ['#c60b1e', '#ffc400', '#f4f4f4', '#7a1010', '#e8a200'],
+    de: ['#1a1a1e', '#dd0000', '#ffce00', '#f4f4f4', '#3a3a40'],
     it: ['#009246', '#f4f4f4', '#ce2b37', '#1b4d2b', '#8a1c24'],
     ucl: ['#0d1b4c', '#1b2f73', '#2a3c70', '#5a6aa8', '#0a1030'],
   };
@@ -26,6 +28,7 @@ const Scenery = (() => {
     l1: ['#1f8a3b', '#26a047'],
     pl: ['#2a8f3e', '#33a148'],
     es: ['#2a8f3e', '#33a148'],
+    de: ['#1f8a3b', '#26a047'],
     it: ['#1f8a3b', '#26a047'],
     ucl: ['#0c4a24', '#10592c'],
   };
@@ -35,6 +38,7 @@ const Scenery = (() => {
     l1: ['#0055a4', '#f4f4f4', '#ef4135'],
     pl: ['#1565c0', '#ff3d9a'],
     es: ['#c60b1e', '#ffc400'],
+    de: ['#1a1a1e', '#dd0000', '#ffce00'],
     it: ['#009246', '#f4f4f4', '#ce2b37'],
     ucl: ['#050a24', '#b9c2e6'],
   };
@@ -88,9 +92,24 @@ const Scenery = (() => {
   // Leaning tower of Pisa, 16 rows: columns and floors, leaning one pixel every 5 rows
   const PISA = Array.from({ length: 16 }, (_, r) => '.'.repeat(3 - Math.floor(r / 5)) + (r % 3 === 0 ? 'XXXXX' : 'X.X.X'));
 
+  // Brandenburg Gate, 24 x 12: the quadriga over the six columns
+  const BRANDENBURG = [
+    '.........XXXXXX.........', '..........XXXX..........', '.XXXXXXXXXXXXXXXXXXXXXX.', 'XXXXXXXXXXXXXXXXXXXXXXXX',
+    '.XX..XX..XX..XX..XX..XX.', '.XX..XX..XX..XX..XX..XX.', '.XX..XX..XX..XX..XX..XX.', '.XX..XX..XX..XX..XX..XX.',
+    '.XX..XX..XX..XX..XX..XX.', '.XX..XX..XX..XX..XX..XX.', '.XX..XX..XX..XX..XX..XX.', 'XXXXXXXXXXXXXXXXXXXXXXXX',
+  ];
+
+  // Berlin TV tower, 9 x 18: X concrete, C lit windows of the sphere
+  const TV_TOWER = [
+    '....X....', '....X....', '....X....', '....X....', '...XXX...', '..XXXXX..', '.XCCCCCX.', '..XXXXX..', '...XXX...',
+    '....X....', '....X....', '...XXX...', '...XXX...', '...XXX...', '...XXX...', '...XXX...', '..XXXXX..', '.XXXXXXX.',
+  ];
+  const TV_TOWER_COLORS = { X: '#3d4a5c', C: '#ffce00' };
+
   // Flags waving above the crowd: colors of each stripe, vertical (Italy) or horizontal (Spain)
   const FLAGS = {
     es: { stripes: ['#c60b1e', '#ffc400', '#c60b1e'], vertical: false },
+    de: { stripes: ['#1a1a1e', '#dd0000', '#ffce00'], vertical: false },
     it: { stripes: ['#009246', '#f4f4f4', '#ce2b37'], vertical: true },
   };
 
@@ -168,6 +187,19 @@ const Scenery = (() => {
         x += width;
       }
       bitmap(g, SAGRADA, 8, 2, '#7a3b1e');
+    }
+
+    if (theme === 'de') {
+      // Berlin: slate rooftops, the Brandenburg Gate on the left, the TV tower on the right
+      g.fillStyle = '#55657a';
+      for (let x = 0; x < w; ) {
+        const width = 6 + Math.floor(rand() * 8);
+        const top = 12 + Math.floor(rand() * 3);
+        g.fillRect(x, top, width - 1, 18 - top);
+        x += width;
+      }
+      bitmap(g, BRANDENBURG, 6, 6, '#e3d4a8');
+      bitmap(g, TV_TOWER, w - 24, 0, TV_TOWER_COLORS);
     }
 
     if (theme === 'it') {
@@ -310,8 +342,8 @@ const Scenery = (() => {
         g.fillStyle = rand() < 0.3 ? '#ffffff' : rand() < 0.5 ? '#9fb3ff' : '#5a6aa8';
         g.fillRect(Math.floor(rand() * w), Math.floor(rand() * h), 1, 1);
       }
-    } else if (theme === 'l1' || theme === 'pl' || theme === 'it') {
-      // Clouds: white over Paris and Rome, pale blue over London
+    } else if (theme === 'l1' || theme === 'pl' || theme === 'de' || theme === 'it') {
+      // Clouds: white over Paris, Berlin and Rome, pale blue over London
       g.fillStyle = theme === 'pl' ? '#d8eeff' : '#eef4ff';
       for (let i = 0; i < (w * h) / 900; i++) {
         const x = Math.floor(rand() * w);
